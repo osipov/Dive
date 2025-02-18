@@ -7,6 +7,7 @@ import Header from "./Header"
 import { useTranslation } from "react-i18next"
 import { showToastAtom } from "../atoms/toastState"
 import { chatIdAtom } from "../atoms/chatState"
+import { loadTriggersForChat, clearTriggers } from "../utils/triggerScheduler";
 
 interface Props {
   onNewChat?: () => void
@@ -112,7 +113,15 @@ const HistorySidebar = ({ onNewChat }: Props) => {
   }
 
   const loadChat = useCallback((chatId: string) => {
+    if (currentChatId) {
+      clearTriggers(currentChatId);
+      console.log('[HistorySidebar.tsx:103] cleared triggers for chatId:', currentChatId);
+    }
+
     setCurrentChatId(chatId)
+    loadTriggersForChat(chatId);
+    console.log('[HistorySidebar.tsx:108] loaded triggers for chatId:', chatId);
+
     setIsVisible(false)
     navigate(`/chat/${chatId}`)
   }, [navigate, setIsVisible])
