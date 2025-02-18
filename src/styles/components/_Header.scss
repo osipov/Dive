@@ -2,6 +2,8 @@
 
 .app-header {
   background: inherit;
+  position: relative;
+  z-index: 300;
 
   [data-theme='dark'] {
     border-color: rgba(255, 255, 255, 0.1);

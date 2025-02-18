@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next"
 import { showToastAtom } from "../atoms/toastState"
 import { chatIdAtom } from "../atoms/chatState"
 import { loadTriggersForChat, clearTriggers } from "../utils/triggerScheduler";
+import SidebarHeader from "./SidebarHeader"
 
 interface Props {
   onNewChat?: () => void
@@ -148,7 +149,7 @@ const HistorySidebar = ({ onNewChat }: Props) => {
   return (
     <>
       <div className={`history-sidebar ${isVisible ? "visible" : ""}`}>
-        <Header />
+        <SidebarHeader />
         <div className="history-header">
           <button onClick={handleNewChat} className="new-chat-btn">
             + {t("chat.newChat")}

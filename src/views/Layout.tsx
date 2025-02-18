@@ -8,10 +8,12 @@ import ConfigSidebar from "../components/ConfigSidebar"
 import SchedulerSidebar from "../components/SchedulerSidebar"
 import GlobalToast from "../components/GlobalToast"
 import { themeAtom } from "../atoms/themeState"
+import { chatIdAtom } from "../atoms/chatState"
 
 const Layout = () => {
   const [hasConfig] = useAtom(hasConfigAtom)
   const [theme] = useAtom(themeAtom)
+  const [chatId] = useAtom(chatIdAtom)
 
   return (
     <div className="app-container" data-theme={theme}>
@@ -20,7 +22,7 @@ const Layout = () => {
         <>
           <HistorySidebar />
           <ConfigSidebar />
-          <SchedulerSidebar />
+          <SchedulerSidebar chatId={chatId || ""} />
         </>
       }
       <Outlet />

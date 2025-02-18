@@ -4,6 +4,7 @@ export const sidebarVisibleAtom = atom(false)
 export const configSidebarVisibleAtom = atom(false)
 export const toolsVisibleAtom = atom(false)
 export const schedulerSidebarVisibleAtom = atom(false)
+export const eventConfigSidebarVisibleAtom = atom(false)
 
 export const getPopupVisibleAtom = atom((get) => {  // is there any sidebar popup visible
   return get(configSidebarVisibleAtom) || get(toolsVisibleAtom)
@@ -27,5 +28,12 @@ export const toggleSchedulerSidebarAtom = atom(
   null,
   (get, set) => {
     set(schedulerSidebarVisibleAtom, !get(schedulerSidebarVisibleAtom))
+  }
+)
+
+export const toggleEventConfigSidebarAtom = atom(
+  null,
+  (get, set) => {
+    set(eventConfigSidebarVisibleAtom, !get(eventConfigSidebarVisibleAtom))
   }
 )
