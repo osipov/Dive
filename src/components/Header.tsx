@@ -1,12 +1,13 @@
 import React from "react"
 import { useAtom, useSetAtom } from "jotai"
-import { toggleSidebarAtom } from "../atoms/sidebarState"
+import { toggleSidebarAtom, toggleSchedulerSidebarAtom } from "../atoms/sidebarState"
 import { useTranslation } from "react-i18next"
 import { chatIdAtom } from "../atoms/chatState"
 import { useNavigate } from "react-router-dom"
 
 const Header = () => {
   const toggleSidebar = useSetAtom(toggleSidebarAtom)
+  const toggleSchedulerSidebar = useSetAtom(toggleSchedulerSidebarAtom)
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [chatId] = useAtom(chatIdAtom)
@@ -37,6 +38,15 @@ const Header = () => {
           </svg>
         </button>
         <h1>{t("header.title")}</h1>
+        <button 
+          className="menu-btn"
+          onClick={toggleSchedulerSidebar}
+          style={{ marginLeft: 'auto' }}
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24">
+            <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+          </svg>
+        </button>
       </div>
     </div>
   )

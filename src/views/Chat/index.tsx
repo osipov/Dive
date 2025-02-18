@@ -10,6 +10,7 @@ import { setChatIdAtom } from "../../atoms/chatState"
 
 const ChatWindow = () => {
   const { chatId } = useParams()
+  const chatIdSet = useRef(new Set<string>());
   const location = useLocation()
   const [messages, setMessages] = useState<Message[]>([])
   const [isAiStreaming, setAiStreaming] = useState(false)
@@ -277,6 +278,39 @@ const ChatWindow = () => {
       scrollToBottom()
     }
   }, [])
+  const messageOnTriggerChatIdRef = useRef(chatId);
+  useEffect(() => {
+    console.log('index.tsx[283] useEffect onSendMsg:', onSendMsg);
+    if (onSendMsg) {
+
+      const triggerHandler = (event: Event) => {
+        const customEvent = event as CustomEvent;
+        if (customEvent.detail.chatId === currentChatId?.current) {
+          onSendMsg(customEvent.detail.message);
+        }
+      };
+
+      console.log('index.tsx[293] chatId ', chatId);
+      if (chatId) {
+        if (messageOnTriggerChatIdRef && messageOnTriggerChatIdRef.current !== chatId) {
+          window.removeEventListener(`triggerMessage(${messageOnTriggerChatIdRef.current})`, triggerHandler);
+          chatIdSet.current.delete(messageOnTriggerChatIdRef.current ? messageOnTriggerChatIdRef.current : "");
+          console.log("index.tsx[298] Removed message on trigger handler for chat:", messageOnTriggerChatIdRef.current);          
+        }
+
+        if (!chatIdSet.current.has(chatId)) {
+          window.addEventListener(`triggerMessage(${chatId})`, triggerHandler);
+          chatIdSet.current.add(chatId);
+          console.log("index.tsx[304] Added message on trigger handler for chat:", chatId);
+        } else {
+          console.log("index.tsx[306] Event listener already exists for chat:", chatId);
+        }
+        
+        messageOnTriggerChatIdRef.current = chatId;
+      }
+
+    }
+  }, [onSendMsg, chatId]);
 
   const handleInitialMessage = useCallback(async (message: string, files?: File[]) => {
     if (files && files.length > 0) {
