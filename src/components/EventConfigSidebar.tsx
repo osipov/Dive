@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next"
 import { useAtom } from "jotai"
 import { eventConfigSidebarVisibleAtom } from "../atoms/sidebarState"
 import { showToastAtom } from "../atoms/toastState"
+import { chatIdAtom } from "../atoms/chatState"
 
 interface EventConfig {
   chatId: string
@@ -18,12 +19,13 @@ const MIN_FREQUENCY = 1 // 1 second minimum
 const MAX_FREQUENCY = 86400 // 24 hours maximum
 const MAX_START_DELAY = 3600 // 1 hour maximum
 
-const EventConfigSidebar = ({ chatId }: { chatId: string }) => {
+const EventConfigSidebar = () => {
   const { t } = useTranslation()
   const [isVisible, setIsVisible] = useAtom(eventConfigSidebarVisibleAtom)
   const [, showToast] = useAtom(showToastAtom)
+  const [chatId] = useAtom(chatIdAtom)
   const [config, setConfig] = useState<EventConfig>({
-    chatId,
+    chatId: "",
     createTime: new Date().toISOString(),
     description: "",
     prompt: "",
@@ -48,6 +50,19 @@ const EventConfigSidebar = ({ chatId }: { chatId: string }) => {
       window.removeEventListener("keydown", handleKeydown)
     }
   }, [isVisible])
+
+  useEffect(() => {
+    if (chatId && chatId !== "init") {
+      setConfig(prev => ({
+        ...prev,
+        chatId
+      }))
+    }
+  }, [chatId])
+
+  if (!chatId || chatId === "init") {
+    return null
+  }
 
   const handleSubmit = async () => {
     try {

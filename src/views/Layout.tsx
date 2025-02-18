@@ -22,7 +22,7 @@ const Layout = () => {
         <>
           <HistorySidebar />
           <ConfigSidebar />
-          <SchedulerSidebar chatId={chatId || ""} />
+          <SchedulerSidebar />
         </>
       }
       <Outlet />

@@ -5,10 +5,9 @@ import { useTranslation } from "react-i18next"
 import EventConfigSidebar from "./EventConfigSidebar"
 
 interface Props {
-  chatId: string
 }
 
-const SchedulerSidebar = ({ chatId }: Props) => {
+const SchedulerSidebar = () => {
   const [isVisible] = useAtom(schedulerSidebarVisibleAtom)
   const [, toggleEventConfig] = useAtom(toggleEventConfigSidebarAtom)
   const toggleSchedulerSidebar = useSetAtom(toggleSchedulerSidebarAtom)
@@ -52,7 +51,7 @@ const SchedulerSidebar = ({ chatId }: Props) => {
           </div>
         </div>
       </div>
-      <EventConfigSidebar chatId={chatId} />
+      <EventConfigSidebar />
     </>
   )
 }
