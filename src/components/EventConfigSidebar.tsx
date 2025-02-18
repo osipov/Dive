@@ -73,13 +73,13 @@ const EventConfigSidebar = ({ chatId }: { chatId: string }) => {
 
       // TODO: Implement event creation API call
       showToast({
-        message: t("event.createSuccess"),
+        message: t("scheduler.event.createSuccess"),
         type: "success"
       })
       setIsVisible(false)
     } catch (error) {
       showToast({
-        message: error instanceof Error ? error.message : t("event.createFailed"),
+        message: error instanceof Error ? error.message : t("scheduler.event.createFailed"),
         type: "error"
       })
     }
@@ -99,7 +99,7 @@ const EventConfigSidebar = ({ chatId }: { chatId: string }) => {
       )}
       <div className={`config-sidebar ${isVisible ? "visible" : ""}`}>
         <div className="config-header">
-          <h2>{t("event.configTitle")}</h2>
+          <h2>{t("scheduler.event.configTitle")}</h2>
           <button 
             className="close-btn"
             onClick={() => setIsVisible(false)}
@@ -114,7 +114,7 @@ const EventConfigSidebar = ({ chatId }: { chatId: string }) => {
           <div className="config-content">
             <form onSubmit={e => { e.preventDefault(); handleSubmit(); }}>
               <div className="form-group">
-                <label>{t("event.chatId")}</label>
+                <label>{t("scheduler.event.chatId")}</label>
                 <input
                   type="text"
                   value={config.chatId}
@@ -124,7 +124,7 @@ const EventConfigSidebar = ({ chatId }: { chatId: string }) => {
               </div>
 
               <div className="form-group">
-                <label>{t("event.createTime")}</label>
+                <label>{t("scheduler.event.createTime")}</label>
                 <input
                   type="text"
                   value={new Date(config.createTime).toLocaleString()}
@@ -134,21 +134,21 @@ const EventConfigSidebar = ({ chatId }: { chatId: string }) => {
               </div>
 
               <div className="form-group">
-                <label>{t("event.description")}</label>
+                <label>{t("scheduler.event.description")}</label>
                 <input
                   type="text"
                   value={config.description}
                   onChange={e => handleInputChange("description", e.target.value)}
-                  placeholder={t("event.descriptionPlaceholder")}
+                  placeholder={t("scheduler.event.descriptionPlaceholder")}
                 />
               </div>
 
               <div className="form-group">
-                <label>{t("event.prompt")}</label>
+                <label>{t("scheduler.event.prompt")}</label>
                 <textarea
                   value={config.prompt}
                   onChange={e => handleInputChange("prompt", e.target.value)}
-                  placeholder={t("event.promptPlaceholder")}
+                  placeholder={t("scheduler.event.promptPlaceholder")}
                   rows={4}
                   style={{
                     width: '100%',
@@ -175,7 +175,7 @@ const EventConfigSidebar = ({ chatId }: { chatId: string }) => {
               </div>
 
               <div className="form-group">
-                <label>{t("event.frequency")} (seconds)</label>
+                <label>{t("scheduler.event.frequency")} (seconds)</label>
                 <input
                   type="number"
                   value={config.frequency}
@@ -184,12 +184,12 @@ const EventConfigSidebar = ({ chatId }: { chatId: string }) => {
                   max={MAX_FREQUENCY}
                 />
                 <span className="help-text">
-                  {t("event.frequencyHelp", { min: MIN_FREQUENCY, max: MAX_FREQUENCY })}
+                  {t("scheduler.event.frequencyHelp", { min: MIN_FREQUENCY, max: MAX_FREQUENCY })}
                 </span>
               </div>
 
               <div className="form-group">
-                <label>{t("event.startDelay")} (seconds)</label>
+                <label>{t("scheduler.event.startDelay")} (seconds)</label>
                 <input
                   type="number"
                   value={config.startDelay}
@@ -198,7 +198,7 @@ const EventConfigSidebar = ({ chatId }: { chatId: string }) => {
                   max={MAX_START_DELAY}
                 />
                 <span className="help-text">
-                  {t("event.startDelayHelp", { min: MIN_START_DELAY, max: MAX_START_DELAY })}
+                  {t("scheduler.event.startDelayHelp", { min: MIN_START_DELAY, max: MAX_START_DELAY })}
                 </span>
               </div>
 
@@ -214,7 +214,7 @@ const EventConfigSidebar = ({ chatId }: { chatId: string }) => {
                   type="submit"
                   className="submit-btn"
                 >
-                  {t("event.create")}
+                  {t("scheduler.event.create")}
                 </button>
               </div>
             </form>

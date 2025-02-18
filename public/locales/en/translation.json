@@ -46,6 +46,26 @@
     "tools": "Tools Management(MCP)",
     "settings": "Model Settings"
   },
+  "scheduler": {
+    "newEvent": "New Event",
+    "settings": "Prompt Scheduler Settings",
+    "event": {
+      "configTitle": "Create New Event",
+      "chatId": "Chat ID",
+      "createTime": "Event Created At",
+      "description": "Description",
+      "descriptionPlaceholder": "Brief summary",
+      "prompt": "Prompt",
+      "promptPlaceholder": "",
+      "frequency": "Frequency",
+      "frequencyHelp": "Number of seconds for how often to send the prompt to the model",
+      "startDelay": "Start Delay",
+      "startDelayHelp": "Number of seconds from the event creation timestamp to wait before the activating the event",
+      "create": "Create Event",
+      "createSuccess": "Event created successfully",
+      "createFailed": "Failed to create event"
+    }
+  },
   "tools": {
     "title": "Tools Management(MCP)",
     "subtitle": "Tools and settings for MCP Server",
