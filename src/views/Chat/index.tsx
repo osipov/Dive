@@ -5,8 +5,8 @@ import ChatInput from "./ChatInput"
 import CodeModal from './CodeModal'
 import { useSetAtom } from 'jotai'
 import { updateStreamingCodeAtom } from '../../atoms/codeStreaming'
+import { setChatIdAtom } from '../../atoms/chatState'
 import { ToolCall, ToolResult } from "./ToolPanel"
-
 const ChatWindow = () => {
   const { chatId } = useParams()
   const chatIdSet = useRef(new Set<string>());
@@ -19,6 +19,8 @@ const ChatWindow = () => {
   const navigate = useNavigate()
   const isInitialMessageHandled = useRef(false)
   const updateStreamingCode = useSetAtom(updateStreamingCodeAtom)
+  const setChatId = useSetAtom(setChatIdAtom)
+
   const loadChat = useCallback(async (id: string) => {
     try {
       setAiStreaming(true)
@@ -27,6 +29,7 @@ const ChatWindow = () => {
 
       if (data.success) {
         currentChatId.current = id
+        setChatId(id)
         document.title = `${data.data.chat.title} - Dive AI`
 
         // 轉換訊息格式
@@ -271,6 +274,7 @@ const ChatWindow = () => {
       scrollToBottom()
     }
   }, [])
+
   const messageOnTriggerChatIdRef = useRef(chatId);
   useEffect(() => {
     console.log('index.tsx[283] useEffect onSendMsg:', onSendMsg);
@@ -337,6 +341,12 @@ const ChatWindow = () => {
 
     lastChatId.current = chatId
   }, [updateStreamingCode, chatId])
+
+  useEffect(() => {
+    return () => {
+      setChatId(null)
+    }
+  }, [setChatId])
 
   return (
     <div className="chat-page">

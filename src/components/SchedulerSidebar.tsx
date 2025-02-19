@@ -1,6 +1,8 @@
 import React from "react"
 import { useAtom, useSetAtom } from "jotai"
-import { schedulerSidebarVisibleAtom, toggleEventConfigSidebarAtom, toggleSchedulerSidebarAtom } from "../atoms/sidebarState"
+import { schedulerSidebarVisibleAtom, toggleEventConfigSidebarAtom, toggleSchedulerSidebarAtom, eventConfigSidebarVisibleAtom } from "../atoms/sidebarState"
+import { chatIdAtom } from "../atoms/chatState"
+import { showToastAtom } from "../atoms/toastState"
 import { useTranslation } from "react-i18next"
 import EventConfigSidebar from "./EventConfigSidebar"
 
@@ -9,11 +11,20 @@ interface Props {
 
 const SchedulerSidebar = () => {
   const [isVisible] = useAtom(schedulerSidebarVisibleAtom)
-  const [, toggleEventConfig] = useAtom(toggleEventConfigSidebarAtom)
+  const [eventConfigVisible, toggleEventConfig] = useAtom(toggleEventConfigSidebarAtom)
+  const [chatId] = useAtom(chatIdAtom)
+  const [, showToast] = useAtom(showToastAtom)
   const toggleSchedulerSidebar = useSetAtom(toggleSchedulerSidebarAtom)
   const { t } = useTranslation()
 
   const handleNewEvent = () => {
+    if (!chatId || chatId === "init") {
+      showToast({
+        message: t("scheduler.selectChatFirst"),
+        type: "warning"
+      })
+      return
+    }
     toggleEventConfig()
   }
 
