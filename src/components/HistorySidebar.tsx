@@ -1,7 +1,7 @@
-import React, { useState, useCallback, useEffect } from "react"
+import React, { useState, useCallback, useEffect, useRef } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
-import { useAtom, useAtomValue } from "jotai"
-import { configSidebarVisibleAtom, getPopupVisibleAtom, sidebarVisibleAtom } from "../atoms/sidebarState"
+import { useAtom } from "jotai"
+import { configSidebarVisibleAtom, sidebarVisibleAtom } from "../atoms/sidebarState"
 import { historiesAtom, loadHistoriesAtom } from "../atoms/historyState"
 import Header from "./Header"
 import { useTranslation } from "react-i18next"
@@ -9,6 +9,7 @@ import { showToastAtom } from "../atoms/toastState"
 import { chatIdAtom } from "../atoms/chatState"
 import { loadTriggersForChat, clearTriggers } from "../utils/triggerScheduler";
 import SidebarHeader from "./SidebarHeader"
+import { openOverlayAtom } from "../atoms/overlayState"
 
 interface Props {
   onNewChat?: () => void
@@ -48,28 +49,27 @@ const HistorySidebar = ({ onNewChat }: Props) => {
   const [, loadHistories] = useAtom(loadHistoriesAtom)
   const [currentChatId, setCurrentChatId] = useState<string | null>(null)
   const [, setConfigSidebarVisible] = useAtom(configSidebarVisibleAtom)
-  const popupVisible = useAtomValue(getPopupVisibleAtom)
   const [deletingChatId, setDeletingChatId] = useState<string | null>(null)
   const [, showToast] = useAtom(showToastAtom)
-  const [chatId] = useAtom(chatIdAtom)
+  const [, openOverlay] = useAtom(openOverlayAtom)
+  const [newVersion, setNewVersion] = useState("")
 
   useEffect(() => {
     if (isVisible) {
       loadHistories()
     }
   }, [isVisible, loadHistories])
-
+  
+  // check new version
+  const lastQueryTime = useRef(0)
   useEffect(() => {
-    function handleKeydown(e: KeyboardEvent) {
-      if (e.key === "Escape" && !popupVisible) {
-        setIsVisible(false)
-      }
+    if (Date.now() - lastQueryTime.current > 1000 * 60) {
+      window.ipcRenderer.checkNewVersion().then(v => {
+        setNewVersion(v)
+        lastQueryTime.current = Date.now()
+      })
     }
-    window.addEventListener("keydown", handleKeydown);
-    return () => {
-      window.removeEventListener("keydown", handleKeydown);
-    }
-  }, [popupVisible])
+  }, [])
 
   const confirmDelete = (e: React.MouseEvent, chatId: string) => {
     e.stopPropagation()
@@ -138,11 +138,10 @@ const HistorySidebar = ({ onNewChat }: Props) => {
   }
 
   const handleTools = () => {
-    navigate("/tools")
+    openOverlay("Tools")
   }
 
   const handleSettings = () => {
-    navigate(`${chatId ? `/chat/${chatId}` : "/"}`)
     setConfigSidebarVisible(true)
   }
 
@@ -182,7 +181,7 @@ const HistorySidebar = ({ onNewChat }: Props) => {
         </div>
         <div className="sidebar-footer">
           <button 
-            className="tools-btn"
+            className="sidebar-footer-btn"
             onClick={handleTools}
           >
             <svg width="20" height="20" viewBox="0 0 24 24">
@@ -191,7 +190,7 @@ const HistorySidebar = ({ onNewChat }: Props) => {
             {t("sidebar.tools")}
           </button>
           <button 
-            className="setup-btn"
+            className="sidebar-footer-btn"
             onClick={handleSettings}
           >
             <svg width="20" height="20" viewBox="0 0 24 24">
@@ -199,6 +198,20 @@ const HistorySidebar = ({ onNewChat }: Props) => {
             </svg>
             {t("sidebar.settings")}
           </button>
+          {newVersion && (
+            <button 
+              className="sidebar-footer-btn update-btn"
+              onClick={() => window.open("https://github.com/OpenAgentPlatform/Dive/releases/latest", "_blank")}
+            >
+              <div>
+                <span>✨</span>
+                <span className="update-btn-text">{t("sidebar.update")}</span>
+              </div>
+              <div>
+                <span>v{newVersion} &gt;</span>
+              </div>
+            </button>
+          )}
         </div>
       </div>
       {deletingChatId && (

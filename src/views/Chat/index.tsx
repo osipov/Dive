@@ -6,7 +6,6 @@ import CodeModal from './CodeModal'
 import { useSetAtom } from 'jotai'
 import { updateStreamingCodeAtom } from '../../atoms/codeStreaming'
 import { ToolCall, ToolResult } from "./ToolPanel"
-import { setChatIdAtom } from "../../atoms/chatState"
 
 const ChatWindow = () => {
   const { chatId } = useParams()
@@ -20,7 +19,6 @@ const ChatWindow = () => {
   const navigate = useNavigate()
   const isInitialMessageHandled = useRef(false)
   const updateStreamingCode = useSetAtom(updateStreamingCodeAtom)
-  const setChatId = useSetAtom(setChatIdAtom)
   const loadChat = useCallback(async (id: string) => {
     try {
       setAiStreaming(true)
@@ -51,15 +49,10 @@ const ChatWindow = () => {
 
   // 處理 URL 中的 chatId
   useEffect(() => {
-    if(chatId) {
-      setChatId(chatId)
-      if (chatId !== currentChatId.current) {
-        loadChat(chatId)
-      }
-    }else{
-      setChatId("init") // when chatId is init, it means the chat is not initialized yet
+    if (chatId && chatId !== currentChatId.current) {
+      loadChat(chatId)
     }
-  }, [chatId, loadChat, setChatId])
+  }, [chatId, loadChat])
 
   const scrollToBottom = useCallback(() => {
     if (chatContainerRef.current) {
