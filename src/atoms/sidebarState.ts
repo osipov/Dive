@@ -37,3 +37,10 @@ export const toggleEventConfigSidebarAtom = atom(
     set(eventConfigSidebarVisibleAtom, !get(eventConfigSidebarVisibleAtom))
   }
 )
+export const closeAllSidebarsAtom = atom(
+  null,
+  (get, set) => {
+    set(sidebarVisibleAtom, false)
+    set(configSidebarVisibleAtom, false)
+  }
+)

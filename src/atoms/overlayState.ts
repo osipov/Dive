@@ -1,6 +1,6 @@
 import { atom } from "jotai"
 
-export type OverlayType = "Tools"
+export type OverlayType = "Tools" | "System"
 
 export const overlaysAtom = atom<OverlayType[]>([])
 
@@ -10,7 +10,6 @@ export const openOverlayAtom = atom(
     const currentOverlays = get(overlaysAtom);
     const filteredOverlays = currentOverlays.filter(o => o !== overlay);
     set(overlaysAtom, [...filteredOverlays, overlay]);
-    console.log(get(overlaysAtom))
   }
 )
 
@@ -20,5 +19,12 @@ export const closeOverlayAtom = atom(
     const currentOverlays = get(overlaysAtom);
     const filteredOverlays = currentOverlays.filter(o => o !== overlay);
     set(overlaysAtom, filteredOverlays);
+  }
+)
+
+export const closeAllOverlaysAtom = atom(
+  null,
+  (get, set) => {
+    set(overlaysAtom, []);
   }
 )

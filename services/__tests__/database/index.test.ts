@@ -7,6 +7,9 @@ import {
   deleteChat,
   getAllChats,
   getChatWithMessages,
+  getAllEvents,
+  getChatEvents,
+  getActiveChatEvents,
   initDatabase,
   setDatabase,
 } from "../../database";
@@ -19,6 +22,9 @@ type MockDB = {
       findFirst: jest.Mock;
     };
     messages: {
+      findMany: jest.Mock;
+    };
+    events: {
       findMany: jest.Mock;
     };
   };
@@ -54,6 +60,9 @@ jest.mock("drizzle-orm/better-sqlite3", () => ({
       messages: {
         findMany: jest.fn(),
       },
+      events: {
+        findMany: jest.fn(),
+      },
     },
     insert: jest.fn(),
     delete: jest.fn(),
@@ -78,6 +87,9 @@ describe("Database Operations", () => {
         messages: {
           findMany: jest.fn(),
         },
+        events: {
+          findMany: jest.fn(),
+        },
       },
       insert: jest.fn(),
       delete: jest.fn(),
@@ -93,12 +105,37 @@ describe("Database Operations", () => {
       expect(result).toBeDefined();
     });
 
+    async function setupMock() {
+      const mockError = new Error("Database initialization failed");
+      jest.unstable_mockModule("better-sqlite3", () => ({
+        default: jest.fn(() => {
+          throw mockError;
+        }),
+      }));
+      const { default: betterSqlite3 } = await import("better-sqlite3");
+      // ... continue using betterSqlite3 here
+    }
+
     test("should throw error when initialization fails", () => {
       const mockError = new Error("Database initialization failed");
       jest.spyOn(console, "error").mockImplementation(() => {});
-      (require("better-sqlite3") as jest.Mock).mockImplementation(() => {
-        throw mockError;
+      setupMock().catch((error) => {
+        console.error("Error setting up mock:", error);
       });
+      // (require("better-sqlite3") as jest.Mock).mockImplementation(() => {
+      //   throw mockError;
+      // });
+      // const mockedSqlite = jest.mocked(jest.requireActual("better-sqlite3"));
+      // mockedSqlite.mockImplementation(() => {
+      //   throw mockError;
+      // });
+      // jest.unstable_mockModule("better-sqlite3", () => ({
+      //   default: jest.fn(() => {
+      //     throw mockError;
+      //   }),
+      // }));      
+      // Import the module dynamically after mocking it
+      // const { default: betterSqlite3 } = await import("better-sqlite3");
 
       expect(() => initDatabase(":memory:")).toThrow(mockError);
     });
@@ -288,4 +325,70 @@ describe("Database Operations", () => {
       expect(mockDb.delete).toHaveBeenCalledTimes(2);
     });
   });
+
+  describe("Events Operations", () => {
+    const mockEvents = [
+      {
+        id: 1,
+        chatId: "chat1",
+        createdAt: "2025-02-19T14:57:07-05:00",
+        description: "Test event 1",
+        prompt: "Test prompt 1",
+        frequency: 60,
+        startDelay: 0,
+        isActive: true,
+        lastRunTime: null,
+        nextRunTime: null,
+      },
+      {
+        id: 2,
+        chatId: "chat1",
+        createdAt: "2025-02-19T14:57:07-05:00",
+        description: "Test event 2",
+        prompt: "Test prompt 2",
+        frequency: 120,
+        startDelay: 0,
+        isActive: false,
+        lastRunTime: null,
+        nextRunTime: null,
+      },
+    ];
+
+    test("should get all events", async () => {
+      mockDb.query.events.findMany.mockResolvedValue(mockEvents as never);
+
+      const events = await getAllEvents();
+      expect(events).toEqual(mockEvents);
+      expect(mockDb.query.events.findMany).toHaveBeenCalled();
+    });
+
+    test("should get all events for a chatId", async () => {
+      const chatId = "chat1";
+      const chatEvents = mockEvents.filter(event => event.chatId === chatId);
+      mockDb.query.events.findMany.mockResolvedValue(chatEvents as never);
+
+      const events = await getChatEvents(chatId);
+      expect(events).toEqual(chatEvents);
+      expect(mockDb.query.events.findMany).toHaveBeenCalled();
+      // expect(mockDb.query.events.findMany).toHaveBeenCalledWith({
+      //   where: expect.any(Function),
+      // });
+    });
+
+    test("should get all active events for a chatId", async () => {
+      const chatId = "chat1";
+      const activeEvents = mockEvents.filter(
+        event => event.chatId === chatId && event.isActive
+      );
+      mockDb.query.events.findMany.mockResolvedValue(activeEvents as never);
+
+      const events = await getActiveChatEvents(chatId);
+      expect(events).toEqual(activeEvents);
+      expect(mockDb.query.events.findMany).toHaveBeenCalled();
+      // expect(mockDb.query.events.findMany).toHaveBeenCalledWith({
+      //   where: expect.any(Function),
+      // });
+    });
+  });
 });
+

@@ -3,7 +3,7 @@ import { and, eq, gt } from "drizzle-orm";
 import { BetterSQLite3Database, drizzle } from "drizzle-orm/better-sqlite3";
 import logger from "../utils/logger.js";
 import * as schema from "./schema.js";
-import { chats, messages, type NewMessage } from "./schema.js";
+import { chats, messages, events, type NewMessage } from "./schema.js";
 
 export let db: BetterSQLite3Database<typeof schema>;
 
@@ -100,4 +100,26 @@ export const deleteMessagesAfter = async (chatId: string, messageId: string) => 
 
   // Delete all messages with id greater than or equal to the target message's id
   await db.delete(messages).where(and(eq(messages.chatId, chatId), gt(messages.id, targetMessage.id - 1)));
+};
+
+// Get all events
+export const getAllEvents = async () => {
+  return await db.query.events.findMany();
+};
+
+// Get all events for a specific chat
+export const getChatEvents = async (chatId: string) => {
+  return await db.query.events.findMany({
+    where: eq(events.chatId, chatId),
+  });
+};
+
+// Get all active events for a specific chat
+export const getActiveChatEvents = async (chatId: string) => {
+  return await db.query.events.findMany({
+    where: and(
+      eq(events.chatId, chatId),
+      eq(events.isActive, true)
+    ),
+  });
 };

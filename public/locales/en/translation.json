@@ -45,7 +45,9 @@
   "sidebar": {
     "tools": "Tools Management(MCP)",
     "settings": "Model Settings",
-    "update": "Update available"
+    "update": "Update available",
+    "models": "Model Settings",
+    "system": "System Settings"
   },
   "scheduler": {
     "newEvent": "New Event",
@@ -92,11 +94,18 @@
     "customInstructionsDescription": "These instructions are added to the end of the system prompt sent with every request.",
     "saveInstructions": "Save Instructions",
     "customRulesSaved": "Custom instructions saved",
-    "customRulesFailed": "Failed to save custom instructions"
+    "customRulesFailed": "Failed to save custom instructions",
+    "modelDescription": "Model name to use",
+    "modelDescriptionHint": "Model name to use (Please enter API Key first to see available models)"
   },
   "common": {
     "close": "Close",
     "confirm": "Confirm",
     "cancel": "Cancel"
+  },
+  "system": {
+    "title": "System Settings",
+    "language": "System Language",
+    "theme": "Display Mode"
   }
-} 
+}
