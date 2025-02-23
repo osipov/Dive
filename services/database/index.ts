@@ -14,13 +14,49 @@ export const setDatabase = (_db: BetterSQLite3Database<typeof schema>) => {
 export const initDatabase = (dbPath?: string) => {
   try {
     const sqlite = new Database(dbPath || "data/database.sqlite");
+    
+    // Run migrations first to ensure tables exist
+    sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS chats (
+        id text PRIMARY KEY NOT NULL,
+        title text NOT NULL,
+        created_at text NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS messages (
+        id integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+        content text NOT NULL,
+        role text NOT NULL,
+        chat_id text NOT NULL,
+        message_id text NOT NULL,
+        created_at text NOT NULL,
+        files text NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS events (
+        id integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+        chat_id text NOT NULL,
+        created_at text NOT NULL,
+        description text NOT NULL DEFAULT '',
+        prompt text NOT NULL DEFAULT '',
+        frequency integer NOT NULL DEFAULT 0,
+        start_delay integer NOT NULL DEFAULT 0,
+        is_active integer NOT NULL DEFAULT 1,
+        last_run_time text,
+        next_run_time text,
+        FOREIGN KEY (chat_id) REFERENCES chats(id)
+      );
+    `);
+
+    // Initialize Drizzle
     db = drizzle(sqlite, { schema: schema });
 
-    // Create index after drizzle initialization
+    // Create index after tables are created
     sqlite.exec(`
       CREATE INDEX IF NOT EXISTS message_chat_id_idx
         ON messages(chat_id)
-      `);
+    `);
+
     logger.info("Database initialized");
     return db;
   } catch (error) {
