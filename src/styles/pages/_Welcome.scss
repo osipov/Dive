@@ -44,6 +44,8 @@
         &::placeholder {
           color: var(--text-inverted-weak);
         }
+
+        @include scrollbar;
       }
     }
 
@@ -225,6 +227,7 @@
   }
 
   .uploaded-files-preview {
+    @include scrollbar;
     margin-bottom: 20px;
     padding-top: 18px;
     display: flex;
