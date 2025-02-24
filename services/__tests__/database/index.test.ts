@@ -12,6 +12,9 @@ import {
   getActiveChatEvents,
   initDatabase,
   setDatabase,
+  createEvent,
+  deleteEvent,
+  setEventActive,
 } from "../../database";
 import * as schema from "../../database/schema";
 
@@ -30,6 +33,7 @@ type MockDB = {
   };
   insert: jest.Mock;
   delete: jest.Mock;
+  update: jest.Mock;
   transaction: jest.Mock;
 };
 
@@ -66,6 +70,7 @@ jest.mock("drizzle-orm/better-sqlite3", () => ({
     },
     insert: jest.fn(),
     delete: jest.fn(),
+    update: jest.fn(),
     transaction: jest.fn(),
   }),
 }));
@@ -93,6 +98,7 @@ describe("Database Operations", () => {
       },
       insert: jest.fn(),
       delete: jest.fn(),
+      update: jest.fn(),
       transaction: jest.fn(),
     };
 
@@ -116,7 +122,7 @@ describe("Database Operations", () => {
       // ... continue using betterSqlite3 here
     }
 
-    test("should throw error when initialization fails", () => {
+    test("should throw error when initialization fails", async () => {
       const mockError = new Error("Database initialization failed");
       jest.spyOn(console, "error").mockImplementation(() => {});
       setupMock().catch((error) => {
@@ -125,10 +131,10 @@ describe("Database Operations", () => {
       // (require("better-sqlite3") as jest.Mock).mockImplementation(() => {
       //   throw mockError;
       // });
-      // const mockedSqlite = jest.mocked(jest.requireActual("better-sqlite3"));
-      // mockedSqlite.mockImplementation(() => {
-      //   throw mockError;
-      // });
+      const mockedSqlite = jest.mocked(jest.requireActual("better-sqlite3") as jest.Mock);
+      mockedSqlite.mockImplementation(() => {
+        throw mockError;
+      });
       // jest.unstable_mockModule("better-sqlite3", () => ({
       //   default: jest.fn(() => {
       //     throw mockError;
@@ -136,7 +142,6 @@ describe("Database Operations", () => {
       // }));      
       // Import the module dynamically after mocking it
       // const { default: betterSqlite3 } = await import("better-sqlite3");
-
       expect(() => initDatabase(":memory:")).toThrow(mockError);
     });
   });
@@ -362,33 +367,202 @@ describe("Database Operations", () => {
       expect(mockDb.query.events.findMany).toHaveBeenCalled();
     });
 
-    test("should get all events for a chatId", async () => {
-      const chatId = "chat1";
-      const chatEvents = mockEvents.filter(event => event.chatId === chatId);
-      mockDb.query.events.findMany.mockResolvedValue(chatEvents as never);
+    test("should return events in descending order of created_at", async () => {
+      const eventsInDescendingOrder = [
+        {
+          id: 2,
+          chatId: "chat1",
+          createdAt: "2025-02-20T14:57:07-05:00",
+          description: "Newer event",
+          prompt: "Test prompt 2",
+          frequency: 120,
+          startDelay: 0,
+          isActive: true,
+          lastRunTime: null,
+          nextRunTime: null,
+        },
+        {
+          id: 1,
+          chatId: "chat1",
+          createdAt: "2025-02-19T14:57:07-05:00",
+          description: "Older event",
+          prompt: "Test prompt 1",
+          frequency: 60,
+          startDelay: 0,
+          isActive: true,
+          lastRunTime: null,
+          nextRunTime: null,
+        },
+      ];
 
-      const events = await getChatEvents(chatId);
-      expect(events).toEqual(chatEvents);
-      expect(mockDb.query.events.findMany).toHaveBeenCalled();
-      // expect(mockDb.query.events.findMany).toHaveBeenCalledWith({
-      //   where: expect.any(Function),
-      // });
+      mockDb.query.events.findMany.mockResolvedValue(eventsInDescendingOrder as never);
+
+      const events = await getAllEvents();
+      expect(events).toEqual(eventsInDescendingOrder);
+      expect(events[0].description).toBe("Newer event");
+      expect(events[1].description).toBe("Older event");
     });
 
-    test("should get all active events for a chatId", async () => {
+    test("should get all events for a chatId in descending order of created_at", async () => {
       const chatId = "chat1";
-      const activeEvents = mockEvents.filter(
-        event => event.chatId === chatId && event.isActive
-      );
-      mockDb.query.events.findMany.mockResolvedValue(activeEvents as never);
+      const eventsInDescendingOrder = [
+        {
+          id: 2,
+          chatId: "chat1",
+          createdAt: "2025-02-20T14:57:07-05:00",
+          description: "Newer event",
+          prompt: "Test prompt 2",
+          frequency: 120,
+          startDelay: 0,
+          isActive: true,
+          lastRunTime: null,
+          nextRunTime: null,
+        },
+        {
+          id: 1,
+          chatId: "chat1",
+          createdAt: "2025-02-19T14:57:07-05:00",
+          description: "Older event",
+          prompt: "Test prompt 1",
+          frequency: 60,
+          startDelay: 0,
+          isActive: true,
+          lastRunTime: null,
+          nextRunTime: null,
+        },
+      ];
+
+      mockDb.query.events.findMany.mockResolvedValue(eventsInDescendingOrder as never);
+
+      const events = await getChatEvents(chatId);
+      expect(events).toEqual(eventsInDescendingOrder);
+      expect(events[0].description).toBe("Newer event");
+      expect(events[1].description).toBe("Older event");
+    });
+
+    test("should get all active events for a chatId in descending order of created_at", async () => {
+      const chatId = "chat1";
+      const eventsInDescendingOrder = [
+        {
+          id: 2,
+          chatId: "chat1",
+          createdAt: "2025-02-20T14:57:07-05:00",
+          description: "Newer event",
+          prompt: "Test prompt 2",
+          frequency: 120,
+          startDelay: 0,
+          isActive: true,
+          lastRunTime: null,
+          nextRunTime: null,
+        },
+        {
+          id: 1,
+          chatId: "chat1",
+          createdAt: "2025-02-19T14:57:07-05:00",
+          description: "Older event",
+          prompt: "Test prompt 1",
+          frequency: 60,
+          startDelay: 0,
+          isActive: true,
+          lastRunTime: null,
+          nextRunTime: null,
+        },
+      ];
+
+      mockDb.query.events.findMany.mockResolvedValue(eventsInDescendingOrder as never);
 
       const events = await getActiveChatEvents(chatId);
-      expect(events).toEqual(activeEvents);
-      expect(mockDb.query.events.findMany).toHaveBeenCalled();
-      // expect(mockDb.query.events.findMany).toHaveBeenCalledWith({
-      //   where: expect.any(Function),
-      // });
+      expect(events).toEqual(eventsInDescendingOrder);
+      expect(events[0].description).toBe("Newer event");
+      expect(events[1].description).toBe("Older event");
+    });
+
+    test("should create a new event", async () => {
+      const mockEvent = {
+        id: 1,
+        chatId: "chat1",
+        createdAt: "2025-02-19T14:57:07-05:00",
+        description: "Test event",
+        prompt: "Test prompt",
+        frequency: 60,
+        startDelay: 0,
+        isActive: true,
+        lastRunTime: null,
+        nextRunTime: null,
+      };
+
+      mockDb.query.chats.findFirst.mockResolvedValue({ id: "chat1" } as never);
+      mockDb.insert.mockReturnValue({
+        values: jest.fn().mockReturnValue({
+          returning: jest.fn().mockResolvedValue([mockEvent] as never),
+        }),
+      });
+
+      const result = await createEvent({
+        chatId: "chat1",
+        description: "Test event",
+        prompt: "Test prompt",
+        frequency: 60,
+        startDelay: 0,
+        isActive: true,
+        createdAt: "2025-02-19T14:57:07-05:00",
+      });
+
+      expect(result).toEqual(mockEvent);
+    });
+
+    test("should throw error when creating event for non-existent chat", async () => {
+      mockDb.query.chats.findFirst.mockResolvedValue(undefined as never);
+
+      await expect(createEvent({
+        chatId: "nonexistent",
+        description: "Test event",
+        prompt: "Test prompt",
+        frequency: 60,
+        startDelay: 0,
+        isActive: true,
+        createdAt: "2025-02-19T14:57:07-05:00",
+      })).rejects.toThrow("Chat nonexistent does not exist");
+    });
+
+    test("should delete an event", async () => {
+      mockDb.delete.mockReturnValue({
+        where: jest.fn().mockReturnValue(Promise.resolve()),
+      });
+
+      await deleteEvent(1);
+      expect(mockDb.delete).toHaveBeenCalledTimes(1);
+    });
+
+    test("should activate/deactivate an event", async () => {
+      const mockEvent = {
+        id: 1,
+        chatId: "chat1",
+        isActive: true,
+      };
+
+      mockDb.update.mockReturnValue({
+        set: jest.fn().mockReturnValue({
+          where: jest.fn().mockReturnValue({
+            returning: jest.fn().mockResolvedValue([mockEvent] as never),
+          }),
+        }),
+      });
+
+      const result = await setEventActive(1, true);
+      expect(result.isActive).toBe(true);
+    });
+
+    test("should throw error when activating non-existent event", async () => {
+      mockDb.update.mockReturnValue({
+        set: jest.fn().mockReturnValue({
+          where: jest.fn().mockReturnValue({
+            returning: jest.fn().mockResolvedValue([] as never),
+          }),
+        }),
+      });
+
+      await expect(setEventActive(999, true)).rejects.toThrow("Event 999 does not exist");
     });
   });
 });
-

@@ -1,9 +1,9 @@
 import Database from "better-sqlite3";
-import { and, eq, gt } from "drizzle-orm";
+import { and, eq, gt, desc, asc } from "drizzle-orm";
 import { BetterSQLite3Database, drizzle } from "drizzle-orm/better-sqlite3";
 import logger from "../utils/logger.js";
 import * as schema from "./schema.js";
-import { chats, messages, events, type NewMessage } from "./schema.js";
+import { chats, messages, events, type NewMessage, type NewEvent } from "./schema.js";
 
 export let db: BetterSQLite3Database<typeof schema>;
 
@@ -140,13 +140,16 @@ export const deleteMessagesAfter = async (chatId: string, messageId: string) => 
 
 // Get all events
 export const getAllEvents = async () => {
-  return await db.query.events.findMany();
+  return await db.query.events.findMany({
+    orderBy: desc(events.createdAt),
+  });
 };
 
 // Get all events for a specific chat
 export const getChatEvents = async (chatId: string) => {
   return await db.query.events.findMany({
     where: eq(events.chatId, chatId),
+    orderBy: desc(events.createdAt),
   });
 };
 
@@ -157,5 +160,44 @@ export const getActiveChatEvents = async (chatId: string) => {
       eq(events.chatId, chatId),
       eq(events.isActive, true)
     ),
+    orderBy: desc(events.createdAt),
   });
+};
+
+// Create a new event
+export const createEvent = async (data: NewEvent) => {
+  // Ensure chat exists
+  const chatExists = await checkChatExists(data.chatId);
+  if (!chatExists) {
+    throw new Error(`Chat ${data.chatId} does not exist`);
+  }
+
+  const [event] = await db
+    .insert(events)
+    .values({
+      ...data,
+      createdAt: data.createdAt || new Date().toISOString(),
+    })
+    .returning();
+  return event;
+};
+
+// Delete an event by id
+export const deleteEvent = async (eventId: number) => {
+  await db.delete(events).where(eq(events.id, eventId));
+};
+
+// Set event active status
+export const setEventActive = async (eventId: number, active: boolean) => {
+  const [event] = await db
+    .update(events)
+    .set({ isActive: active })
+    .where(eq(events.id, eventId))
+    .returning();
+  
+  if (!event) {
+    throw new Error(`Event ${eventId} does not exist`);
+  }
+  
+  return event;
 };
