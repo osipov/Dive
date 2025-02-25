@@ -3,13 +3,13 @@ import merge from "lodash/merge"
 import { closeAllSidebarsAtom, toggleSidebarAtom } from "./sidebarState"
 import { router } from "../router"
 import mitt from "mitt"
-import { closeAllOverlaysAtom } from "./overlayState"
+import { closeAllOverlaysAtom, popLayerAtom } from "./layerState"
 
 export const ChatInputHotkeyEvent = [
     "chat-input:submit",
     "chat-input:upload-file",
     "chat-input:focus",
-    "chat-input:past-last-message"
+    "chat-input:paste-last-message"
 ] as const
 export type ChatInputHotkeyEvent = typeof ChatInputHotkeyEvent[number]
 
@@ -191,8 +191,7 @@ const handleGlobalEventAtom = atom(
   (get, set, event: GlobalHotkeyEvent) => {
     switch (event) {
       case "global:close-layer":
-        set(closeAllSidebarsAtom)
-        set(closeAllOverlaysAtom)
+        set(popLayerAtom)
         break
       case "global:new-chat":
         set(closeAllSidebarsAtom)
