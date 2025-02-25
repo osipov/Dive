@@ -76,6 +76,112 @@
     padding: 0 $page-h-padding;
     
     @include scrollbar;
+
+    .event-item {
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color $transition-fast;
+
+      &:hover {
+        background-color: var(--bg-op-dark-ultraweak);
+      }
+
+      .event-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+
+        h3 {
+          margin: 0;
+          font-size: 14px;
+          font-weight: 500;
+        }
+
+        .event-actions {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          margin-left: 8px;
+
+          .delete-btn,
+          .active-btn {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            visibility: hidden;
+            padding: 6px;
+            border: none;
+            border-radius: 4px;
+            background: none;
+            cursor: pointer;
+            transition: all $transition-fast;
+            opacity: 0.9;
+            z-index: 1;
+
+            &:hover {
+              background: var(--bg-op-dark-weak);
+            }
+
+            svg {
+              display: block;
+              width: 20px;
+              height: 20px;
+            }
+          }
+
+          .delete-btn svg {
+            fill: var(--text-weak);
+          }
+
+          .active-btn {
+            color: var(--text-weak);
+            
+            svg {
+              fill: var(--text-weak);
+            }
+
+            &.active {
+              color: var(--text-success);
+              
+              svg {
+                fill: var(--text-success);
+              }
+            }
+          }
+        }
+      }
+
+      &:hover .event-actions {
+        .delete-btn,
+        .active-btn {
+          visibility: visible;
+        }
+      }
+
+      .event-details {
+        font-size: 12px;
+        color: var(--text-weak);
+
+        .prompt {
+          margin: 4px 0;
+        }
+
+        .event-timing {
+          display: flex;
+          gap: 12px;
+          margin: 4px 0;
+        }
+
+        .event-created {
+          margin-top: 8px;
+          font-size: 11px;
+        }
+      }
+    }
   }
 
   .scheduler-footer {
@@ -106,6 +212,65 @@
         width: 16px;
         height: 16px;
         fill: currentColor;
+      }
+    }
+  }
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-overlay);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: $z-modal;
+}
+
+.confirm-modal {
+  background: var(--bg-weak);
+  padding: 24px;
+  border-radius: 8px;
+  min-width: 300px;
+
+  h3 {
+    margin: 0 0 20px;
+    text-align: center;
+  }
+
+  .confirm-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+
+    button {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &.cancel-btn {
+        background: none;
+        border: 1px solid var(--border);
+        color: var(--text);
+
+        &:hover {
+          border-color: var(--bg-hover-blue);
+          color: var(--text-hover-blue);
+        }
+      }
+
+      &.confirm-btn {
+        background: var(--bg-error);
+        color: white;
+
+        &:hover {
+          background: var(--bg-hover-error);
+        }
       }
     }
   }

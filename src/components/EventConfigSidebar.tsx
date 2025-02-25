@@ -5,6 +5,10 @@ import { eventConfigSidebarVisibleAtom } from "../atoms/sidebarState"
 import { showToastAtom } from "../atoms/toastState"
 import { chatIdAtom } from "../atoms/chatState"
 
+interface Props {
+  onEventCreated?: () => void;
+}
+
 interface EventConfig {
   chatId: string
   createTime: string
@@ -19,7 +23,7 @@ const MIN_FREQUENCY = 1 // 1 second minimum
 const MAX_FREQUENCY = 86400 // 24 hours maximum
 const MAX_START_DELAY = 3600 // 1 hour maximum
 
-const EventConfigSidebar = () => {
+const EventConfigSidebar = ({ onEventCreated }: Props) => {
   const { t } = useTranslation()
   const [isVisible, setIsVisible] = useAtom(eventConfigSidebarVisibleAtom)
   const [, showToast] = useAtom(showToastAtom)
@@ -86,12 +90,34 @@ const EventConfigSidebar = () => {
         throw new Error("Prompt is required")
       }
 
-      // TODO: Implement event creation API call
+      // Make API call to create event
+      const response = await fetch('/api/events', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          chatId: config.chatId,
+          description: config.description.trim(),
+          prompt: config.prompt.trim(),
+          frequency: config.frequency,
+          startDelay: config.startDelay,
+          isActive: true
+        })
+      });
+
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.message || t("scheduler.event.createFailed"));
+      }
+
       showToast({
         message: t("scheduler.event.createSuccess"),
         type: "success"
-      })
-      setIsVisible(false)
+      });
+      setIsVisible(false);
+      onEventCreated?.();
     } catch (error) {
       showToast({
         message: error instanceof Error ? error.message : t("scheduler.event.createFailed"),

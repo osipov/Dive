@@ -1,6 +1,8 @@
 import Database from "better-sqlite3";
 import { and, eq, gt, desc, asc } from "drizzle-orm";
 import { BetterSQLite3Database, drizzle } from "drizzle-orm/better-sqlite3";
+import { writeFileSync } from "fs";
+import { join } from "path";
 import logger from "../utils/logger.js";
 import * as schema from "./schema.js";
 import { chats, messages, events, type NewMessage, type NewEvent } from "./schema.js";
@@ -58,6 +60,9 @@ export const initDatabase = (dbPath?: string) => {
     `);
 
     logger.info("Database initialized");
+    
+    // Write database location to file
+    const dbLocation = dbPath || "data/database.sqlite";    
     return db;
   } catch (error) {
     logger.error("Error initializing database:", error);
