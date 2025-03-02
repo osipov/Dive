@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell, ipcMain, protocol, net } from "electron"
+import { app, BrowserWindow, shell, ipcMain, protocol, net, Menu } from "electron"
 import { createRequire } from "node:module"
 import { fileURLToPath } from "node:url"
 import path from "node:path"
@@ -27,6 +27,18 @@ protocol.registerSchemesAsPrivileged([
       stream: true,
     }
   }
+])
+
+const selectionMenu = Menu.buildFromTemplate([
+  { role: "copy" },
+  { role: "selectAll" }
+])
+
+const inputMenu = Menu.buildFromTemplate([
+  { role: "copy" },
+  { role: "paste" },
+  { role: "cut" },
+  { role: "selectAll" }
 ])
 
 // The built directory structure
@@ -287,6 +299,14 @@ ipcMain.handle("api:openaiCompatibleModelList", async (_, apiKey: string, baseUR
   }
 })
 
+ipcMain.handle("show-selection-context-menu", () => {
+  selectionMenu.popup()
+})
+
+ipcMain.handle("show-input-context-menu", () => {
+  inputMenu.popup()
+})
+
 ipcMain.handle("api:checkNewVersion", async () => {
   try {
     fse.mkdirSync(cacheDir, { recursive: true })
@@ -326,5 +346,9 @@ ipcMain.handle("api:checkNewVersion", async () => {
 })
 
 ipcMain.handle("api:getHotkeyMap", async () => {
-  return config.hotkey
+  return config.keymap
+})
+
+ipcMain.handle("api:getPlatform", async () => {
+  return process.platform
 })

@@ -1,16 +1,20 @@
 import React, { useState, useCallback, useEffect, useRef } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
-import { useAtomValue, useSetAtom } from "jotai"
+import { useAtom, useAtomValue, useSetAtom } from "jotai"
 import { configSidebarVisibleAtom, sidebarVisibleAtom } from "../atoms/sidebarState"
 import { historiesAtom, loadHistoriesAtom } from "../atoms/historyState"
 import Header from "./Header"
 import { useTranslation } from "react-i18next"
 import { showToastAtom } from "../atoms/toastState"
+import Tooltip from "./Tooltip"
+import { closeAllOverlaysAtom, openOverlayAtom } from "../atoms/layerState"
+import { useSidebarLayer } from "../hooks/useLayer"
+import useHotkeyEvent from "../hooks/useHotkeyEvent"
+import { currentChatIdAtom } from "../atoms/chatState"
+import PopupConfirm from "./PopupConfirm"
 import { chatIdAtom } from "../atoms/chatState"
 import { loadTriggersForChat, clearTriggers } from "../utils/triggerScheduler";
 import SidebarHeader from "./SidebarHeader"
-import { closeAllOverlaysAtom, openOverlayAtom } from "../atoms/layerState"
-import { useSidebarLayer } from "../hooks/useLayer"
 
 interface Props {
   onNewChat?: () => void
@@ -23,21 +27,25 @@ interface DeleteConfirmProps {
 
 const DeleteConfirmModal: React.FC<DeleteConfirmProps> = ({ onConfirm, onCancel }) => {
   const { t } = useTranslation()
+  const setCurrentChatId = useSetAtom(currentChatIdAtom)
+  
+  const _onConfirm = useCallback(() => {
+    onConfirm()
+    setCurrentChatId("")
+  }, [onConfirm, setCurrentChatId])
   
   return (
-    <div className="modal-overlay" onClick={onCancel}>
-      <div className="confirm-modal" onClick={e => e.stopPropagation()}>
-        <h3>{t("chat.confirmDelete")}</h3>
-        <div className="confirm-actions">
-          <button className="cancel-btn" onClick={onCancel}>
-            {t("common.cancel")}
-          </button>
-          <button className="confirm-btn" onClick={onConfirm}>
-            {t("common.confirm")}
-          </button>
-        </div>
-      </div>
-    </div>
+    <PopupConfirm
+      title={t("chat.confirmDelete")}
+      confirmText={t("common.confirm")}
+      cancelText={t("common.cancel")}
+      onConfirm={_onConfirm}
+      onCancel={onCancel}
+      onClickOutside={onCancel}
+      noBorder
+      footerType="center"
+      zIndex={1000}
+    />
   )
 }
 
@@ -47,7 +55,6 @@ const HistorySidebar = ({ onNewChat }: Props) => {
   const location = useLocation()
   const histories = useAtomValue(historiesAtom)
   const loadHistories = useSetAtom(loadHistoriesAtom)
-  const [currentChatId, setCurrentChatId] = useState<string | null>(null)
   const setConfigSidebarVisible = useSetAtom(configSidebarVisibleAtom)
   const [deletingChatId, setDeletingChatId] = useState<string | null>(null)
   const showToast = useSetAtom(showToastAtom)
@@ -55,12 +62,17 @@ const HistorySidebar = ({ onNewChat }: Props) => {
   const [newVersion, setNewVersion] = useState("")
   const closeAllOverlays = useSetAtom(closeAllOverlaysAtom)
   const [isVisible, setVisible] = useSidebarLayer(sidebarVisibleAtom)
+  const [currentChatId, setCurrentChatId] = useAtom(currentChatIdAtom)
 
   useEffect(() => {
     if (isVisible) {
       loadHistories()
     }
   }, [isVisible, loadHistories])
+  
+  useHotkeyEvent("chat:delete", () => {
+    currentChatId && setDeletingChatId(currentChatId)
+  })
   
   // check new version
   const lastQueryTime = useRef(0)
@@ -131,7 +143,7 @@ const HistorySidebar = ({ onNewChat }: Props) => {
   }, [navigate])
 
   const handleNewChat = () => {
-    setCurrentChatId(null)
+    setCurrentChatId("")
     setVisible(false)
     closeAllOverlays()
     if (onNewChat) {
@@ -158,9 +170,13 @@ const HistorySidebar = ({ onNewChat }: Props) => {
       <div className={`history-sidebar ${isVisible ? "visible" : ""}`}>
         <SidebarHeader />
         <div className="history-header">
-          <button onClick={handleNewChat} className="new-chat-btn">
-            + {t("chat.newChat")}
-          </button>
+          <Tooltip
+            content={`${t("chat.newChatTooltip")} Ctrl + Shift + O`}
+          >
+            <button className="new-chat-btn" onClick={handleNewChat}>
+              + {t("chat.newChat")}
+            </button>
+          </Tooltip>
         </div>
         <div className="history-list">
           {histories.map(chat => (

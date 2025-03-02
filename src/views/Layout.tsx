@@ -10,6 +10,7 @@ import GlobalToast from "../components/GlobalToast"
 import { chatIdAtom } from "../atoms/chatState"
 import { themeAtom, systemThemeAtom } from "../atoms/themeState"
 import Overlay from "./Overlay"
+import KeymapModal from "../components/Modal/KeymapModal"
 
 const Layout = () => {
   const [hasConfig] = useAtom(hasConfigAtom)
@@ -19,7 +20,7 @@ const Layout = () => {
 
   return (
     <div className="app-container" data-theme={theme === "system" ? systemTheme : theme}>
-      <Header />
+      <Header showHelpButton/>
       {hasConfig &&
         <>
           <HistorySidebar />
@@ -30,6 +31,7 @@ const Layout = () => {
       <Outlet />
       <Overlay />
       <GlobalToast />
+      <KeymapModal />
     </div>
   )
 }
