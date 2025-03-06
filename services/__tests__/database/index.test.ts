@@ -15,6 +15,7 @@ import {
   createEvent,
   deleteEvent,
   setEventActive,
+  getEvent,
 } from "../../database";
 import * as schema from "../../database/schema";
 
@@ -29,6 +30,7 @@ type MockDB = {
     };
     events: {
       findMany: jest.Mock;
+      findFirst: jest.Mock;
     };
   };
   insert: jest.Mock;
@@ -66,6 +68,7 @@ jest.mock("drizzle-orm/better-sqlite3", () => ({
       },
       events: {
         findMany: jest.fn(),
+        findFirst: jest.fn(),
       },
     },
     insert: jest.fn(),
@@ -94,6 +97,7 @@ describe("Database Operations", () => {
         },
         events: {
           findMany: jest.fn(),
+          findFirst: jest.fn(),
         },
       },
       insert: jest.fn(),
@@ -563,6 +567,33 @@ describe("Database Operations", () => {
       });
 
       await expect(setEventActive(999, true)).rejects.toThrow("Event 999 does not exist");
+    });
+
+    test("should get a specific event by ID", async () => {
+      const mockEvent = {
+        id: 1,
+        chatId: "chat1",
+        createdAt: "2025-02-19T14:57:07-05:00",
+        description: "Test event",
+        prompt: "Test prompt",
+        frequency: 60,
+        startDelay: 0,
+        isActive: true,
+        lastRunTime: null,
+        nextRunTime: null,
+      };
+
+      mockDb.query.events.findFirst.mockResolvedValue(mockEvent as never);
+
+      const result = await getEvent(1);
+      expect(result).toEqual(mockEvent);
+      expect(mockDb.query.events.findFirst).toHaveBeenCalled();
+    });
+
+    test("should throw error when getting non-existent event", async () => {
+      mockDb.query.events.findFirst.mockResolvedValue(undefined as never);
+
+      await expect(getEvent(999)).rejects.toThrow("Event 999 does not exist");
     });
   });
 });

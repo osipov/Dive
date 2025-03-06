@@ -5,6 +5,7 @@ import { schedulerSidebarVisibleAtom, toggleEventConfigSidebarAtom, toggleSchedu
 import { chatIdAtom } from "../atoms/chatState"
 import { showToastAtom } from "../atoms/toastState"
 import EventConfigSidebar from "./EventConfigSidebar"
+import { registerEventTrigger, unregisterTrigger } from "../utils/triggerScheduler"
 
 interface DeleteConfirmProps {
   onConfirm: () => void
@@ -85,6 +86,9 @@ const SchedulerSidebar = () => {
     if (!deletingEventId) return;
 
     try {
+      // Find the event to get its details before deleting
+      const eventToDelete = events.find(event => event.id === deletingEventId);
+      
       const response = await fetch(`/api/events/${deletingEventId}`, {
         method: 'DELETE'
       });
@@ -92,6 +96,13 @@ const SchedulerSidebar = () => {
 
       if (!data.success) {
         throw new Error(data.message || 'Failed to delete event');
+      }
+
+      // If the event was active, unregister its trigger
+      if (eventToDelete && eventToDelete.isActive) {
+        const triggerId = `event-${eventToDelete.id}-${eventToDelete.frequency}`;
+        console.log(`Unregistering trigger for deleted event: ${eventToDelete.description} (ID: ${eventToDelete.id}, triggerId: ${triggerId})`);
+        unregisterTrigger(eventToDelete.chatId, triggerId);
       }
 
       showToast({
@@ -113,6 +124,8 @@ const SchedulerSidebar = () => {
   const handleToggleActive = async (event: Event, e: React.MouseEvent) => {
     e.stopPropagation();
     
+    const isActivating = !event.isActive;
+    
     try {
       const response = await fetch(`/api/events/${event.id}/active`, {
         method: 'PUT',
@@ -120,25 +133,42 @@ const SchedulerSidebar = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          active: !event.isActive
+          active: isActivating
         })
       });
       const data = await response.json();
       
       if (!data.success) {
-        throw new Error(data.message || `Failed to ${event.isActive ? 'deactivate' : 'activate'} event`);
+        throw new Error(data.message || `Failed to ${isActivating ? 'activate' : 'deactivate'} event`);
+      }
+      
+      // If we're activating the event, register the trigger
+      if (isActivating) {
+        console.log(`Registering trigger for activated event: ${event.description} (ID: ${event.id})`);
+        registerEventTrigger(event.chatId, {
+          ...event,
+          isActive: true // Update the isActive property
+        });
+      } 
+      // If we're deactivating the event, unregister the trigger
+      else {
+        // The trigger ID format is "event-${event.id}-${event.frequency}" as used in registerEventTrigger
+        const triggerId = `event-${event.id}-${event.frequency}`;
+        console.log(`Unregistering trigger for deactivated event: ${event.description} (ID: ${event.id}, triggerId: ${triggerId})`);
+        unregisterTrigger(event.chatId, triggerId);
       }
       
       await fetchEvents(); // Refresh the events list
     } catch (error) {
       showToast({
-        message: error instanceof Error ? error.message : `Failed to ${event.isActive ? 'deactivate' : 'activate'} event`,
+        message: error instanceof Error ? error.message : `Failed to ${isActivating ? 'activate' : 'deactivate'} event`,
         type: "error"
       });
     }
   };
 
   const handleNewEvent = () => {
+    console.log("SchedulerSidebar - handleNewEvent - chatId:", chatId);
     if (!chatId || chatId === "init") {
       showToast({
         message: t("scheduler.selectChatFirst"),
@@ -148,6 +178,11 @@ const SchedulerSidebar = () => {
     }
     toggleEventConfig()
   }
+
+  // Add debug logging for chatId changes
+  useEffect(() => {
+    console.log("SchedulerSidebar - chatId changed:", chatId);
+  }, [chatId]);
 
   return (
     <>

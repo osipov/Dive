@@ -260,4 +260,4 @@ const HistorySidebar = ({ onNewChat }: Props) => {
   )
 }
 
-export default React.memo(HistorySidebar) 
+export default React.memo(HistorySidebar)

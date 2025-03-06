@@ -4,6 +4,7 @@ import { useAtom } from "jotai"
 import { eventConfigSidebarVisibleAtom } from "../atoms/sidebarState"
 import { showToastAtom } from "../atoms/toastState"
 import { chatIdAtom } from "../atoms/chatState"
+import { registerEventTrigger } from "../utils/triggerScheduler"
 
 interface Props {
   onEventCreated?: () => void;
@@ -64,7 +65,13 @@ const EventConfigSidebar = ({ onEventCreated }: Props) => {
     }
   }, [chatId])
 
+  // Add debug logging
+  useEffect(() => {
+    console.log("EventConfigSidebar - chatId:", chatId);
+  }, [chatId]);
+
   if (!chatId || chatId === "init") {
+    console.log("EventConfigSidebar - Not rendering because chatId is invalid:", chatId);
     return null
   }
 
@@ -112,6 +119,9 @@ const EventConfigSidebar = ({ onEventCreated }: Props) => {
         throw new Error(data.message || t("scheduler.event.createFailed"));
       }
 
+      // Register the event trigger with the scheduler
+      registerEventTrigger(config.chatId, data.data);
+      
       showToast({
         message: t("scheduler.event.createSuccess"),
         type: "success"

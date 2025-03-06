@@ -38,7 +38,8 @@ const ChatWindow = () => {
 
       if (data.success) {
         currentChatId.current = id
-        setChatId(id)
+        setCurrentChatId(id)
+        setChatId(id) // Also update chatIdAtom
         document.title = `${data.data.chat.title} - Dive AI`
 
         const convertedMessages = data.data.messages.map((msg: any) => ({
@@ -79,8 +80,9 @@ const ChatWindow = () => {
     if (chatId && chatId !== currentChatId.current) {
       loadChat(chatId)
       setCurrentChatId(chatId)
+      setChatId(chatId) // Also update chatIdAtom
     }
-  }, [chatId, loadChat, setCurrentChatId])
+  }, [chatId, loadChat, setCurrentChatId, setChatId])
 
   const scrollToBottom = useCallback(() => {
     if (chatContainerRef.current) {
@@ -247,8 +249,16 @@ const ChatWindow = () => {
 
               case "chat_info":
                 document.title = `${data.content.title} - Dive AI`
-                currentChatId.current = data.content.id
-                navigate(`/chat/${data.content.id}`, { replace: true })
+                const newChatId = data.content.id;
+                currentChatId.current = newChatId;
+                setCurrentChatId(newChatId);
+                setChatId(newChatId);
+                console.log("Chat info updated, setting chatId to:", newChatId);
+                
+                // Update trigger message handler for the new chat
+                updateTriggerMessageHandler(newChatId);
+                
+                navigate(`/chat/${newChatId}`, { replace: true });
                 break
 
               case "message_info":
@@ -302,38 +312,45 @@ const ChatWindow = () => {
   }, [])
 
   const messageOnTriggerChatIdRef = useRef(chatId);
-  useEffect(() => {
-    console.log('index.tsx[283] useEffect onSendMsg:', onSendMsg);
-    if (onSendMsg) {
-
-      const triggerHandler = (event: Event) => {
-        const customEvent = event as CustomEvent;
-        if (customEvent.detail.chatId === currentChatId?.current) {
-          onSendMsg(customEvent.detail.message);
-        }
-      };
-
-      console.log('index.tsx[293] chatId ', chatId);
-      if (chatId) {
-        if (messageOnTriggerChatIdRef && messageOnTriggerChatIdRef.current !== chatId) {
-          window.removeEventListener(`triggerMessage(${messageOnTriggerChatIdRef.current})`, triggerHandler);
-          chatIdSet.current.delete(messageOnTriggerChatIdRef.current ? messageOnTriggerChatIdRef.current : "");
-          console.log("index.tsx[298] Removed message on trigger handler for chat:", messageOnTriggerChatIdRef.current);          
-        }
-
-        if (!chatIdSet.current.has(chatId)) {
-          window.addEventListener(`triggerMessage(${chatId})`, triggerHandler);
-          chatIdSet.current.add(chatId);
-          console.log("index.tsx[304] Added message on trigger handler for chat:", chatId);
-        } else {
-          console.log("index.tsx[306] Event listener already exists for chat:", chatId);
-        }
-        
-        messageOnTriggerChatIdRef.current = chatId;
+  
+  // Reusable function to update trigger message handler
+  const updateTriggerMessageHandler = useCallback((newChatId: string) => {
+    if (!onSendMsg || !newChatId) return;
+    
+    console.log('Updating trigger message handler for chat:', newChatId);
+    
+    const triggerHandler = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail.chatId === currentChatId?.current) {
+        onSendMsg(customEvent.detail.message);
       }
-
+    };
+    
+    // Remove old event listener if it exists
+    if (messageOnTriggerChatIdRef.current && messageOnTriggerChatIdRef.current !== newChatId) {
+      window.removeEventListener(`triggerMessage(${messageOnTriggerChatIdRef.current})`, triggerHandler);
+      chatIdSet.current.delete(messageOnTriggerChatIdRef.current ? messageOnTriggerChatIdRef.current : "");
+      console.log("Removed event listener for chat:", messageOnTriggerChatIdRef.current);          
     }
-  }, [onSendMsg, chatId]);
+
+    // Add new event listener
+    if (!chatIdSet.current.has(newChatId)) {
+      window.addEventListener(`triggerMessage(${newChatId})`, triggerHandler);
+      chatIdSet.current.add(newChatId);
+      console.log("Added event listener for chat:", newChatId);
+    } else {
+      console.log("Event listener already exists for chat:", newChatId);
+    }
+    
+    messageOnTriggerChatIdRef.current = newChatId;
+  }, [onSendMsg, currentChatId]);
+  
+  // Update trigger message handler when chatId changes
+  useEffect(() => {
+    if (chatId) {
+      updateTriggerMessageHandler(chatId);
+    }
+  }, [chatId, updateTriggerMessageHandler]);
 
   const handleInitialMessage = useCallback(async (message: string, files?: File[]) => {
     if (files && files.length > 0) {
@@ -370,7 +387,7 @@ const ChatWindow = () => {
 
   useEffect(() => {
     return () => {
-      setChatId(null)
+      setChatId("init") // Use "init" instead of null to match the new type
     }
   }, [setChatId])
 

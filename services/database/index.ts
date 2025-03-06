@@ -169,6 +169,19 @@ export const getActiveChatEvents = async (chatId: string) => {
   });
 };
 
+// Get a specific event by its ID
+export const getEvent = async (eventId: number) => {
+  const event = await db.query.events.findFirst({
+    where: eq(events.id, eventId),
+  });
+  
+  if (!event) {
+    throw new Error(`Event ${eventId} does not exist`);
+  }
+  
+  return event;
+};
+
 // Create a new event
 export const createEvent = async (data: NewEvent) => {
   // Ensure chat exists

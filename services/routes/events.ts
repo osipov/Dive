@@ -4,6 +4,7 @@ import {
   deleteEvent,
   getChatEvents,
   setEventActive,
+  getEvent,
 } from "../database/index.js";
 import logger from "../utils/logger.js";
 
@@ -60,6 +61,32 @@ export function eventsRouter() {
       });
     } catch (error: any) {
       logger.error("Error creating event:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  });
+
+  // Get a specific event by ID
+  router.get("/:id", async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      if (isNaN(eventId)) {
+        res.status(400).json({
+          success: false,
+          message: "Invalid event ID format",
+        });
+        return;
+      }
+      
+      const event = await getEvent(eventId);
+      res.json({
+        success: true,
+        data: event,
+      });
+    } catch (error: any) {
+      logger.error(`Error getting event ${req.params.id}:`, error);
       res.status(500).json({
         success: false,
         message: error.message,
