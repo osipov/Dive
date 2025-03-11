@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react"
+import React from "react"
 import { Outlet } from "react-router-dom"
 import HistorySidebar from "../components/HistorySidebar"
 import Header from "../components/Header"
 import { useAtom } from "jotai"
 import { hasConfigAtom } from "../atoms/configState"
-import ConfigSidebar from "../components/ConfigSidebar"
+// import ConfigSidebar from "../components/ConfigSidebar"
 import SchedulerSidebar from "../components/SchedulerSidebar"
 import GlobalToast from "../components/GlobalToast"
 import { chatIdAtom } from "../atoms/chatState"
@@ -20,11 +20,10 @@ const Layout = () => {
 
   return (
     <div className="app-container" data-theme={theme === "system" ? systemTheme : theme}>
-      <Header showHelpButton/>
-      {hasConfig &&
+      <Header showHelpButton showModelSelect />
+          {hasConfig &&
         <>
           <HistorySidebar />
-          <ConfigSidebar />
           <SchedulerSidebar />
         </>
       }

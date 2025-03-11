@@ -99,7 +99,7 @@ const SchedulerSidebar = () => {
       }
 
       // If the event was active, unregister its trigger
-      if (eventToDelete && eventToDelete.isActive) {
+      if (eventToDelete) {
         const triggerId = `event-${eventToDelete.id}-${eventToDelete.frequency}`;
         console.log(`Unregistering trigger for deleted event: ${eventToDelete.description} (ID: ${eventToDelete.id}, triggerId: ${triggerId})`);
         unregisterTrigger(eventToDelete.chatId, triggerId);

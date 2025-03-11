@@ -50,6 +50,24 @@ interface DatabaseOperations {
 
 // direct database access implementation
 class DirectDatabaseAccess implements DatabaseOperations {
+  public db: BetterSQLite3Database<typeof schema>;
+  public MODE: DatabaseMode = DatabaseMode.DIRECT;
+  constructor(dbPath?: string) {
+    try {
+      const sqlite = new Database(dbPath || "data/database.sqlite");
+      this.db = drizzle(sqlite, { schema: schema });
+
+      // Create index after drizzle initialization
+      // sqlite.exec(`
+      //   CREATE INDEX IF NOT EXISTS message_chat_id_idx
+      //     ON messages(chat_id)
+      //   `);
+      logger.info("Database initialized");
+    } catch (error) {
+      logger.error("Error initializing database:", error);
+      throw error;
+    }
+  }
   // Event operations implementation
   async getAllEvents(_options?: DatabaseOptions) {
     return await this.db.query.events.findMany({
@@ -119,25 +137,6 @@ class DirectDatabaseAccess implements DatabaseOperations {
     
     return event;
   }
-  public db: BetterSQLite3Database<typeof schema>;
-  public MODE: DatabaseMode = DatabaseMode.DIRECT;
-  constructor(dbPath?: string) {
-    try {
-      const sqlite = new Database(dbPath || "data/database.sqlite");
-      this.db = drizzle(sqlite, { schema: schema });
-
-      // Create index after drizzle initialization
-      // sqlite.exec(`
-      //   CREATE INDEX IF NOT EXISTS message_chat_id_idx
-      //     ON messages(chat_id)
-      //   `);
-      logger.info("Database initialized");
-    } catch (error) {
-      logger.error("Error initializing database:", error);
-      throw error;
-    }
-  }
-
   async getAllChats(_options?: DatabaseOptions) {
     const chats = await this.db.query.chats.findMany();
     return chats.reverse();
@@ -271,72 +270,7 @@ class DirectDatabaseAccess implements DatabaseOperations {
 
 // API access implementation
 class ApiDatabaseAccess implements DatabaseOperations {
-  // Event operations implementation
-  async getAllEvents(options?: DatabaseOptions) {
-    const { fingerprint = "funmula" } = options || {};
-    const response = await this.axiosInstance.get("/events", {
-      headers: await this.getHeaders(options),
-      data: { fingerprint }
-    });
-    return response.data.map((e: any) => ({...e, id: e.event_id})) as typeof schema.events.$inferSelect[];
-  }
-
-  async getChatEvents(chatId: string, options?: DatabaseOptions) {
-    const { fingerprint = "funmula" } = options || {};
-    const response = await this.axiosInstance.get(`/events/${chatId}`, {
-      headers: await this.getHeaders(options),
-      data: { fingerprint }
-    });
-    return response.data.map((e: any) => ({...e, id: e.event_id})) as typeof schema.events.$inferSelect[];
-  }
-
-  async getActiveChatEvents(chatId: string, options?: DatabaseOptions) {
-    const { fingerprint = "funmula" } = options || {};
-    const response = await this.axiosInstance.get(`/events/${chatId}/active`, {
-      headers: await this.getHeaders(options),
-      data: { fingerprint }
-    });
-    return response.data.map((e: any) => ({...e, id: e.event_id})) as typeof schema.events.$inferSelect[];
-  }
-
-  async getEvent(eventId: number, options?: DatabaseOptions) {
-    const { fingerprint = "funmula" } = options || {};
-    const response = await this.axiosInstance.get(`/event/${eventId}`, {
-      headers: await this.getHeaders(options),
-      data: { fingerprint }
-    });
-    return {...response.data, id: response.data.event_id} as typeof schema.events.$inferSelect;
-  }
-
-  async createEvent(data: NewEvent, options?: DatabaseOptions) {
-    const { fingerprint = "funmula" } = options || {};
-    const response = await this.axiosInstance.post("/event", {
-      ...data,
-      fingerprint
-    }, {
-      headers: await this.getHeaders(options)
-    });
-    return {...response.data, id: response.data.event_id} as typeof schema.events.$inferSelect;
-  }
-
-  async deleteEvent(eventId: number, options?: DatabaseOptions) {
-    const { fingerprint = "funmula" } = options || {};
-    await this.axiosInstance.delete(`/event/${eventId}`, {
-      headers: await this.getHeaders(options),
-      data: { fingerprint }
-    });
-  }
-
-  async setEventActive(eventId: number, active: boolean, options?: DatabaseOptions) {
-    const { fingerprint = "funmula" } = options || {};
-    const response = await this.axiosInstance.put(`/event/${eventId}/active`, {
-      active,
-      fingerprint
-    }, {
-      headers: await this.getHeaders(options)
-    });
-    return {...response.data, id: response.data.event_id} as typeof schema.events.$inferSelect;
-  }
+  
   public db: any
   private baseUrl: string;
   private verifyToken: string | null;
@@ -390,6 +324,73 @@ class ApiDatabaseAccess implements DatabaseOperations {
       logger.error("Error getting verify token:", error);
       throw error;
     }
+  }
+
+  // Event operations implementation
+  async getAllEvents(options?: DatabaseOptions) {
+    const { fingerprint = "funmula" } = options || {};
+    const response = await this.axiosInstance.get("/events", {
+      headers: await this.getHeaders(options),
+      data: { fingerprint }
+    });
+    return response.data as typeof schema.events.$inferSelect[];
+  }
+
+  async getChatEvents(chatId: string, options?: DatabaseOptions) {
+    const { fingerprint = "funmula" } = options || {};
+    const response = await this.axiosInstance.get(`/events/chat/${chatId}`, {
+      headers: await this.getHeaders(options),
+      data: { fingerprint }
+    });
+    return response.data as typeof schema.events.$inferSelect[];
+  }
+
+  async getActiveChatEvents(chatId: string, options?: DatabaseOptions) {
+    const { fingerprint = "funmula" } = options || {};
+    const response = await this.axiosInstance.get(`/events/${chatId}/active`, {
+      headers: await this.getHeaders(options),
+      data: { fingerprint }
+    });
+    return response.data as typeof schema.events.$inferSelect[];
+  }
+
+  async getEvent(eventId: number, options?: DatabaseOptions) {
+    const { fingerprint = "funmula" } = options || {};
+    const response = await this.axiosInstance.get(`/events/${eventId}`, {
+      headers: await this.getHeaders(options),
+      data: { fingerprint }
+    });
+    return response.data as typeof schema.events.$inferSelect;
+  }
+
+  async createEvent(data: NewEvent, options?: DatabaseOptions) {
+    const { fingerprint = "funmula" } = options || {};
+    const response = await this.axiosInstance.post("/events", {
+      ...data,
+      fingerprint
+    }, {
+      headers: await this.getHeaders(options)
+    });
+    return response.data as typeof schema.events.$inferSelect;
+  }
+
+  async deleteEvent(eventId: number, options?: DatabaseOptions) {
+    const { fingerprint = "funmula" } = options || {};
+    await this.axiosInstance.delete(`/events/${eventId}`, {
+      headers: await this.getHeaders(options),
+      data: { fingerprint }
+    });
+  }
+
+  async setEventActive(eventId: number, active: boolean, options?: DatabaseOptions) {
+    const { fingerprint = "funmula" } = options || {};
+    const response = await this.axiosInstance.put(`/events/${eventId}/active`, {
+      active,
+      fingerprint
+    }, {
+      headers: await this.getHeaders(options)
+    });
+    return response.data as typeof schema.events.$inferSelect;
   }
 
   async getAllChats(options?: DatabaseOptions) {

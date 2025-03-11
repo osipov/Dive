@@ -4,6 +4,7 @@ import { compatibleRouter } from "./compatible.js";
 import { configRouter } from "./config.js";
 import { modelVerifyRouter } from "./modelVerify.js";
 import { toolsRouter } from "./tools.js";
+import { eventsRouter } from "./events.js";
 
 const OFFLINE_MODE = true
 
@@ -42,6 +43,7 @@ export function createRouter() {
   router.use("/api/v1", compatibleRouter());
 
   router.use("/api/chat", chatRouter());
+  router.use("/api/events", eventsRouter());
 
   return router;
 }

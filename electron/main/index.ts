@@ -1,30 +1,17 @@
-import { app, BrowserWindow, shell, ipcMain, protocol, net, Menu } from "electron"
+import { app, BrowserWindow, shell, ipcMain } from "electron"
 import { createRequire } from "node:module"
 import { fileURLToPath } from "node:url"
 import path from "node:path"
 import os from "node:os"
-import fse from "fs-extra"
-import semver from "semver"
 import { cleanup, initMCPClient } from "./service"
-import { getLatestVersion, getNvmPath, modifyPath } from "./util"
-import { binDirList, cacheDir, darwinPathList } from "./constant"
+import { getNvmPath, modifyPath } from "./util"
+import { binDirList, darwinPathList } from "./constant"
 import { update } from "./update"
 import { ipcHandler } from "./ipc"
+import { initProtocol } from "./protocol"
 
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-
-protocol.registerSchemesAsPrivileged([
-  {
-    scheme: "local-file",
-    privileges: {
-      secure: true,
-      supportFetchAPI: true,
-      bypassCSP: true,
-      stream: true,
-    }
-  }
-])
 
 // The built directory structure
 //
@@ -75,12 +62,8 @@ async function onReady() {
     }
   }
 
-  protocol.handle("local-file", (req) => {
-    const url = req.url.replace("local-file:///", process.platform === "win32" ? "file:///" : "file://")
-    return net.fetch(url)
-  })
-
   initMCPClient()
+  initProtocol()
   createWindow()
 }
 

@@ -42,6 +42,5 @@ export const closeAllSidebarsAtom = atom(
   null,
   (get, set) => {
     set(sidebarVisibleAtom, false)
-    set(configSidebarVisibleAtom, false)
   }
 )
