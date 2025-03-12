@@ -1,0 +1,79 @@
+# Dive AI Agent: Project Intelligence
+
+This file captures important patterns, preferences, and project intelligence for the Dive AI Agent project. It serves as a learning journal to help work more effectively with the codebase and project requirements.
+
+## Project Structure Patterns
+
+- **Atomic State Management**: State is managed using Jotai atoms in the `src/atoms/` directory, with separate files for different domains.
+- **Service-Oriented Architecture**: Backend functionality is organized into services in the `services/` directory.
+- **React Component Organization**: UI components are organized in `src/components/`, with full page views in `src/views/`.
+- **Electron Main/Renderer Pattern**: Main process code is in `electron/main/`, preload scripts in `electron/preload/`.
+- **Configuration Files**: Various configuration files at the root level control building, packaging, and linting.
+
+## Naming Conventions
+
+- **TypeScript Files**: Use `.ts` extension for pure TypeScript files and `.tsx` for files with React components.
+- **Component Files**: Use PascalCase for component files (e.g., `Header.tsx`, `SchedulerSidebar.tsx`).
+- **Utility Files**: Use camelCase for utility and service files (e.g., `index.ts`, `database.ts`).
+- **Test Files**: Place in `__tests__` directories with `.test.ts` or `.test.tsx` extensions.
+
+## Code Style Preferences
+
+- **TypeScript**: Strong typing is preferred throughout the codebase.
+- **React Functional Components**: Use functional components with hooks rather than class components.
+- **State Management**: Use Jotai atoms for state that needs to be shared across components.
+- **Async Operations**: Use async/await pattern for asynchronous operations.
+- **Error Handling**: Implement proper error handling for all async operations.
+
+## MCP Implementation Patterns
+
+- **MCP Server Configuration**: MCP servers are configured in a JSON configuration file.
+- **Protocol Handling**: The MCP protocol is implemented using the @modelcontextprotocol/sdk package.
+- **Tool Integration**: External tools are integrated through the MCP protocol.
+
+## UI/UX Patterns
+
+- **Sidebar Navigation**: The application uses sidebars for navigation and additional functionality.
+- **Modal Dialogs**: Use modal dialogs for configuration and user input.
+- **Toast Notifications**: Use toast notifications for user feedback.
+- **Responsive Design**: The UI should be responsive to different window sizes.
+
+## Build and Deployment Patterns
+
+- **Vite for Development**: Use Vite for development server and building.
+- **Electron Builder**: Use Electron Builder for packaging and distribution.
+- **Cross-Platform Building**: Special handling for building Windows versions on macOS/Linux.
+
+## Testing Patterns
+
+- **Jest for Unit Tests**: Use Jest for unit testing.
+- **Vitest for Component Tests**: Use Vitest for component testing.
+- **Playwright for E2E Tests**: Use Playwright for end-to-end testing.
+
+## Documentation Patterns
+
+- **README.md**: Main project documentation.
+- **BUILD.md**: Build instructions.
+- **Memory Bank**: Comprehensive project documentation in the memory-bank directory.
+- **Code Comments**: Use JSDoc-style comments for functions and components.
+
+## Known Challenges
+
+- **Cross-Platform Compatibility**: Ensuring consistent behavior across Windows, macOS, and Linux.
+- **MCP Server Security**: Handling security considerations for MCP server access.
+- **Performance Optimization**: Optimizing performance for large conversation histories.
+- **Token Management**: Managing token limits for various LLM providers.
+
+## Project Evolution Notes
+
+- The project is actively evolving with new features being added regularly.
+- Recent focus has been on adding SSE Transport Protocol, auto-updates, keyboard shortcuts, and math formula rendering.
+- Upcoming features include Prompt Schedule and OpenAgentPlatform MarketPlace.
+
+## Working Effectively with This Project
+
+- Start by understanding the state management using Jotai atoms.
+- Explore the service layer to understand backend functionality.
+- Understand the MCP protocol implementation for tool integration.
+- Follow the established patterns for new features and changes.
+- Keep the memory bank updated with new insights and changes.
