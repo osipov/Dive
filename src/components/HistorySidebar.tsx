@@ -16,6 +16,8 @@ import { chatIdAtom } from "../atoms/chatState"
 import { loadTriggersForChat, clearTriggers } from "../utils/triggerScheduler";
 import SidebarHeader from "./SidebarHeader"
 import { newVersionAtom } from "../atoms/globalState"
+import UpdateButton from "./UpdateButton"
+
 interface Props {
   onNewChat?: () => void
 }
@@ -235,20 +237,7 @@ const HistorySidebar = ({ onNewChat }: Props) => {
             </svg>
             {t("sidebar.system")}
           </button>
-          {newVersion && (
-            <button
-              className="sidebar-footer-btn update-btn"
-              onClick={() => window.open("https://github.com/OpenAgentPlatform/Dive/releases/latest", "_blank")}
-            >
-              <div className="update-btn-wrap">
-                <span>✨</span>
-                <span className="update-btn-text">{t("sidebar.update")}</span>
-              </div>
-              <div className="update-btn-text">
-                <span>v{newVersion} &gt;</span>
-              </div>
-            </button>
-          )}
+          <UpdateButton />
         </div>
       </div>
       {deletingChatId && (
