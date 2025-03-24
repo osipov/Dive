@@ -26,7 +26,8 @@
     "edit": "编辑",
     "editDescription": "编辑此消息将重新生成一个新回复",
     "cancel": "取消",
-    "save": "保存"
+    "save": "保存",
+    "toolCalls": "🛠 请求 {{name}} 工具结果"
   },
   "welcome": {
     "title": "欢迎使用 Dive AI",
@@ -74,7 +75,8 @@
     "fetchFailed": "加载工具列表失败",
     "configFetchFailed": "加载设置失败",
     "invalidJson": "无效的 JSON 格式",
-    "updateFailed": "{{serverName}} 启动失败：{{error}}"
+    "updateFailed": "{{serverName}} 启动失败：{{error}}",
+    "installFailed": "安装失败"
   },
   "modelConfig": {
     "title": "模型设置",
@@ -110,6 +112,7 @@
     "deleteAllDescription": "删除后无可用模型，无法进行对话",
     "noModelAlertTitle": "未启用任何Models！",
     "noModelAlertDescription": "无可用模型，无法进行对话",
+    "selectModelPlaceHolder": "选择模型...",
     "noModelAlertOption": "无可用模型",
     "modelSaved": "已保存模型",
     "modelSaveFailed": "模型保存失败",
