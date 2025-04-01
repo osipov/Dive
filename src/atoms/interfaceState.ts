@@ -1,24 +1,28 @@
-import { atom } from "jotai"
+export const EMPTY_PROVIDER = "none"
 
-export type ModelProvider = "openai" | "openai_compatible" | "ollama" | "anthropic" | "google_genai" | "mistralai"
-export const PROVIDERS: ModelProvider[] = ["openai", "openai_compatible", "ollama", "anthropic", "google_genai", "mistralai"] as const
+export type BaseProvider = "openai" | "ollama" | "anthropic" | "mistralai" | "bedrock"
+export type ModelProvider = BaseProvider | "google-genai"
+export type InterfaceProvider = BaseProvider | "openai_compatible" | "google_genai"
+export const PROVIDERS: InterfaceProvider[] = ["openai", "openai_compatible", "ollama", "anthropic", "google_genai", "mistralai", "bedrock"] as const
 
-export const PROVIDER_LABELS: Record<ModelProvider, string> = {
+export const PROVIDER_LABELS: Record<InterfaceProvider, string> = {
   openai: "OpenAI",
   openai_compatible: "OpenAI Compatible",
   ollama: "Ollama",
   anthropic: "Anthropic",
   google_genai: "Google Gemini",
-  mistralai: "Mistral AI"
+  mistralai: "Mistral AI",
+  bedrock: "AWS Bedrock",
 }
 
-export const PROVIDER_ICONS: Record<ModelProvider, string> = {
+export const PROVIDER_ICONS: Record<InterfaceProvider, string> = {
   ollama: "img://model_ollama.svg",
   openai_compatible: "img://model_openai_compatible.svg",
   openai: "img://model_openai.svg",
   anthropic: "img://model_anthropic.svg",
   google_genai: "img://model_gemini.svg",
   mistralai: "img://model_mistral-ai.svg",
+  bedrock: "img://model_bedrock.svg",
 }
 
 export type InputType = "text" | "password"
@@ -37,7 +41,7 @@ export interface FieldDefinition {
 
 export type InterfaceDefinition = Record<string, FieldDefinition>
 
-export const defaultInterface: Record<ModelProvider, InterfaceDefinition> = {
+export const defaultInterface: Record<InterfaceProvider, InterfaceDefinition> = {
   openai: {
     apiKey: {
       type: "string",
@@ -223,13 +227,60 @@ export const defaultInterface: Record<ModelProvider, InterfaceDefinition> = {
       },
       listDependencies: ["apiKey"]
     },
+  },
+  bedrock: {
+    accessKeyId: {
+      type: "string",
+      inputType: "password",
+      label: "AWS Access Key ID",
+      description: "",
+      required: false,
+      default: "",
+      placeholder: "YOUR_AWS_ACCESS_KEY_ID"
+    },
+    secretAccessKey: {
+      type: "string",
+      inputType: "password",
+      label: "AWS Secret Access Key",
+      description: "",
+      required: false,
+      default: "",
+      placeholder: "YOUR_AWS_SECRET_ACCESS_KEY"
+    },
+    sessionToken: {
+      type: "string",
+      inputType: "password",
+      label: "AWS Session Token",
+      description: "",
+      required: false,
+      default: "",
+      placeholder: "YOUR_AWS_SESSION_TOKEN"
+    },
+    region: {
+      type: "string",
+      inputType: "text",
+      label: "Region",
+      description: "",
+      required: false,
+      placeholder: "e.g. us-east-1",
+      default: "us-east-1",
+    },
+    model: {
+      type: "list",
+      label: "Model ID",
+      description: "modelConfig.modelDescriptionHint",
+      required: false,
+      default: "",
+      placeholder: "Select a model",
+      listCallback: async (deps) => {
+        try {
+          return await window.ipcRenderer.bedrockModelList(deps.accessKeyId, deps.secretAccessKey, deps.sessionToken, deps.region)
+        } catch (error) {
+          console.error(error)
+          return []
+        }
+      },
+      listDependencies: ["accessKeyId", "secretAccessKey", "sessionToken", "region"]
+    },
   }
 }
-
-export const interfaceAtom = atom<{
-  provider: ModelProvider
-  fields: InterfaceDefinition
-}>({
-  provider: "openai",
-  fields: defaultInterface["openai"]
-})

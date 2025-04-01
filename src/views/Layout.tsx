@@ -2,9 +2,8 @@ import React from "react"
 import { Outlet } from "react-router-dom"
 import HistorySidebar from "../components/HistorySidebar"
 import Header from "../components/Header"
-import { useAtom } from "jotai"
-import { hasConfigAtom } from "../atoms/configState"
-// import ConfigSidebar from "../components/ConfigSidebar"
+import { useAtom, useAtomValue } from "jotai"
+import { isConfigNotInitializedAtom } from "../atoms/configState"
 import SchedulerSidebar from "../components/SchedulerSidebar"
 import GlobalToast from "../components/GlobalToast"
 import { chatIdAtom } from "../atoms/chatState"
@@ -13,7 +12,7 @@ import Overlay from "./Overlay"
 import KeymapModal from "../components/Modal/KeymapModal"
 
 const Layout = () => {
-  const [hasConfig] = useAtom(hasConfigAtom)
+  const isConfigNotInitialized = useAtomValue(isConfigNotInitializedAtom)
   const [theme] = useAtom(themeAtom)
   const [chatId] = useAtom(chatIdAtom)
   const [systemTheme] = useAtom(systemThemeAtom)
@@ -21,7 +20,7 @@ const Layout = () => {
   return (
     <div className="app-container" data-theme={theme === "system" ? systemTheme : theme}>
       <Header showHelpButton showModelSelect />
-          {hasConfig &&
+      {!isConfigNotInitialized &&
         <>
           <HistorySidebar />
           <SchedulerSidebar />
