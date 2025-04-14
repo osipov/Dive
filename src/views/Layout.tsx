@@ -10,6 +10,7 @@ import { chatIdAtom } from "../atoms/chatState"
 import { themeAtom, systemThemeAtom } from "../atoms/themeState"
 import Overlay from "./Overlay"
 import KeymapModal from "../components/Modal/KeymapModal"
+import CodeModal from "./Chat/CodeModal"
 
 const Layout = () => {
   const isConfigNotInitialized = useAtomValue(isConfigNotInitializedAtom)
@@ -19,14 +20,19 @@ const Layout = () => {
 
   return (
     <div className="app-container" data-theme={theme === "system" ? systemTheme : theme}>
-      <Header showHelpButton showModelSelect />
-      {!isConfigNotInitialized &&
-        <>
-          <HistorySidebar />
-          <SchedulerSidebar />
-        </>
-      }
-      <Outlet />
+      <div className="app-content">
+        {!isConfigNotInitialized &&
+          <>
+            <HistorySidebar />
+            <SchedulerSidebar />
+          </>
+        }
+        <div className="outlet-container">
+          {!isConfigNotInitialized && <Header showHelpButton showModelSelect />}
+          <Outlet />
+        </div>
+        <CodeModal />
+      </div>
       <Overlay />
       <GlobalToast />
       <KeymapModal />

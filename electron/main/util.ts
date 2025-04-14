@@ -3,6 +3,7 @@ import path from "node:path"
 import { spawn } from "cross-spawn"
 import { app } from "electron"
 import fse from "fs-extra"
+import { exec } from "node:child_process"
 
 export function isPortInUse(port: number): Promise<boolean> {
   return new Promise((resolve) => {
@@ -57,30 +58,6 @@ export function setNodePath() {
   process.env.NODE_PATH = path.join(process.resourcesPath, "node", "node_modules")
 }
 
-export function getNvmPath(): string {
-  const home = process.env.HOME
-  if (!home) return ""
-
-  const nvmPath = path.join(home, ".nvm", "versions", "node")
-
-  try {
-    if (fse.existsSync(nvmPath)) {
-      const currentVersion = fse.readdirSync(nvmPath)
-        .filter(dir => dir.startsWith("v"))
-        .sort()
-        .pop()
-
-      if (currentVersion) {
-        return path.join(nvmPath, currentVersion, "bin")
-      }
-    }
-  } catch (error) {
-    console.error("Error getting NVM path:", error)
-  }
-
-  return ""
-}
-
 export function getLatestVersion(): Promise<string> {
   return fetch("https://api.github.com/repos/OpenAgentPlatform/Dive/releases/latest")
     .then(res => res.json())
@@ -115,4 +92,16 @@ export function compareFilesAndReplace(filePath1: string, filePath2: string) {
   if (fse.existsSync(filePath1) && !compareFiles(filePath1, filePath2) || !fse.existsSync(filePath2)) {
     fse.copyFileSync(filePath1, filePath2)
   }
+}
+
+export function getDarwinSystemPath(): Promise<string> {
+  return new Promise((resolve, reject) => {
+    exec("echo $PATH", (error, stdout, stderr) => {
+      if (error) {
+        reject(error)
+        return
+      }
+      resolve(stdout.trim())
+    })
+  })
 }

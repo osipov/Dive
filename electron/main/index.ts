@@ -5,7 +5,7 @@ import path from "node:path"
 import os from "node:os"
 import AppState from "./state"
 import { cleanup, initMCPClient } from "./service"
-import { getNvmPath, modifyPath } from "./util"
+import { getDarwinSystemPath, modifyPath } from "./util"
 import { binDirList, darwinPathList } from "./constant"
 import { update } from "./update"
 import { ipcHandler } from "./ipc"
@@ -57,12 +57,11 @@ async function onReady() {
   if (process.platform === "win32") {
     binDirList.forEach(modifyPath)
   } else if (process.platform === "darwin") {
-    darwinPathList.forEach(modifyPath)
-
-    const nvmPath = getNvmPath()
-    if (nvmPath) {
-      modifyPath(nvmPath)
+    if (!process.env.PATH) {
+      process.env.PATH = await getDarwinSystemPath().catch(() => "")
     }
+
+    darwinPathList.forEach(modifyPath)
   }
 
   initMCPClient()
@@ -74,6 +73,10 @@ async function createWindow() {
   win = new BrowserWindow({
     title: "Dive AI",
     icon: path.join(process.env.VITE_PUBLIC, "favicon.ico"),
+    width: 1280,
+    height: 720,
+    minHeight: 320,
+    minWidth: 400,
     webPreferences: {
       preload,
       // Warning: Enable nodeIntegration and disable contextIsolation is not secure in production
