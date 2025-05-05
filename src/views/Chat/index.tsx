@@ -1,9 +1,9 @@
 import React, { useRef, useState, useCallback, useEffect } from "react"
 import { useLocation, useNavigate, useParams } from "react-router-dom"
 import ChatMessages, { Message } from "./ChatMessages"
-import ChatInput from "./ChatInput"
-import { useAtom, useSetAtom } from 'jotai'
-import { codeStreamingAtom } from '../../atoms/codeStreaming'
+import ChatInput from "../../components/ChatInput"
+import { useAtom, useSetAtom } from "jotai"
+import { codeStreamingAtom } from "../../atoms/codeStreaming"
 import useHotkeyEvent from "../../hooks/useHotkeyEvent"
 import { showToastAtom } from "../../atoms/toastState"
 import { useTranslation } from "react-i18next"
@@ -452,15 +452,11 @@ const ChatWindow = () => {
                 break
 
               case "error":
+                currentText += `\n\nError: ${data.content}`
                 setMessages(prev => {
                   const newMessages = [...prev]
-                  newMessages[newMessages.length - 1] = {
-                    id: `${currentId.current++}`,
-                    text: `Error: ${data.content}`,
-                    isSent: false,
-                    timestamp: Date.now(),
-                    isError: true
-                  }
+                  newMessages[newMessages.length - 1].text = currentText
+                  newMessages[newMessages.length - 1].isError = true
                   return newMessages
                 })
                 break
@@ -579,6 +575,7 @@ const ChatWindow = () => {
             onEdit={onEdit}
           />
           <ChatInput
+            page="chat"
             onSendMessage={onSendMsg}
             disabled={isChatStreaming}
             onAbort={onAbort}
