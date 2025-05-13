@@ -58,6 +58,7 @@ const ChatWindow = () => {
   const toolCallResults = useRef<string>("")
   const toolResultCount = useRef(0)
   const toolResultTotal = useRef(0)
+  const toolKeyRef = useRef(0)
 
   const loadChat = useCallback(async (id: string) => {
     try {
@@ -69,8 +70,7 @@ const ChatWindow = () => {
         currentChatId.current = id
         setCurrentChatId(id)
         setChatId(id) // Also update chatIdAtom
-        document.title = `${data.data.chat.title} - Dive AI`
-
+        document.title = `${data.data.chat.title.substring(0, 40)}${data.data.chat.title.length > 40 ? "..." : ""} - Dive AI`
         const rawToMessage = (msg: RawMessage): Message => ({
           id: msg.messageId || msg.id || String(currentId.current++),
           text: msg.content,
@@ -128,8 +128,10 @@ const ChatWindow = () => {
 
                 const content = `${callContent}${resultContent}`
                 const toolName = toolsName.size > 0 ? JSON.stringify(Array.from(toolsName).join(", ")) : ""
+
                 // eslint-disable-next-line quotes
-                acc[acc.length - 1].text += `\n<tool-call name=${toolName || '""'}>${content}</tool-call>\n\n`
+                acc[acc.length - 1].text += `\n<tool-call toolkey=${toolKeyRef.current} name=${toolName || '""'}>${content}</tool-call>\n\n`
+                toolKeyRef.current++
 
                 toolCallBuf = []
                 toolResultBuf = []
@@ -396,12 +398,13 @@ const ChatWindow = () => {
                 const uniqTools = new Set(tools)
                 const toolName = uniqTools.size === 0 ? "%name%" : Array.from(uniqTools).join(", ")
 
-                toolCallResults.current += `\n<tool-call name="${toolName}">##Tool Calls:${safeBase64Encode(JSON.stringify(toolCalls))}`
+                toolCallResults.current += `\n<tool-call toolkey=${toolKeyRef.current} name="${toolName}">##Tool Calls:${safeBase64Encode(JSON.stringify(toolCalls))}`
                 setMessages(prev => {
                   const newMessages = [...prev]
                   newMessages[newMessages.length - 1].text = currentText + toolCallResults.current + "</tool-call>"
                   return newMessages
                 })
+                toolKeyRef.current++
                 break
 
               case "tool_result":
@@ -427,7 +430,6 @@ const ChatWindow = () => {
                 break
 
               case "chat_info":
-                document.title = `${data.content.title} - Dive AI`
                 const newChatId = data.content.id;
                 currentChatId.current = newChatId;
                 setCurrentChatId(newChatId);
@@ -436,8 +438,9 @@ const ChatWindow = () => {
                 
                 // Update trigger message handler for the new chat
                 updateTriggerMessageHandler(newChatId);
+                document.title = `${data.data.chat.title.substring(0, 40)}${data.data.chat.title.length > 40 ? "..." : ""} - Dive AI`
                 
-                navigate(`/chat/${newChatId}`, { replace: true });
+                navigate(`/chat/${newChatId}`, { replace: true })
                 break
 
               case "message_info":
