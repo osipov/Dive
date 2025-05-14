@@ -438,9 +438,9 @@ const ChatWindow = () => {
                 
                 // Update trigger message handler for the new chat
                 updateTriggerMessageHandler(newChatId);
-                document.title = `${data.data.chat.title.substring(0, 40)}${data.data.chat.title.length > 40 ? "..." : ""} - Dive AI`
-                
-                navigate(`/chat/${newChatId}`, { replace: true })
+                document.title = `${data.content.title.substring(0, 40)}${data.content.title.length > 40 ? "..." : ""} - Dive AI`
+                currentChatId.current = data.content.id
+                navigate(`/chat/${data.content.id}`, { replace: true })
                 break
 
               case "message_info":
@@ -457,7 +457,7 @@ const ChatWindow = () => {
                 break
 
               case "error":
-                currentText += `\n\nError: ${data.content}`
+                currentText += `\n\n${data.content}`
                 setMessages(prev => {
                   const newMessages = [...prev]
                   newMessages[newMessages.length - 1].text = currentText
@@ -476,7 +476,7 @@ const ChatWindow = () => {
         const newMessages = [...prev]
         newMessages[newMessages.length - 1] = {
           id: `${currentId.current++}`,
-          text: `Error: ${error.message}`,
+          text: `${error.message}`,
           isSent: false,
           timestamp: Date.now(),
           isError: true
